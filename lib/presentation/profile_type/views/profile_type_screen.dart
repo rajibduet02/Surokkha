@@ -45,21 +45,23 @@ class _ProfileTypeScreenState extends State<ProfileTypeScreen> {
                 constraints: const BoxConstraints(maxWidth: 430),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildHeader(),
-                      const SizedBox(height: 32),
-                      _buildProfileCards(),
-                      const SizedBox(height: 32),
-                      _ContinueButton(
-                        enabled: selectedType != null,
-                        onPressed: _onContinue,
-                      ),
-                      const SizedBox(height: 24),
-                      _buildProgressText(),
-                    ],
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildHeader(),
+                        const SizedBox(height: 32),
+                        _buildProfileCards(),
+                        const SizedBox(height: 32),
+                        _ContinueButton(
+                          enabled: selectedType != null,
+                          onPressed: _onContinue,
+                        ),
+                        const SizedBox(height: 24),
+                        _buildProgressText(),
+                      ],
+                    ),
                   ),
                 ),
               ),

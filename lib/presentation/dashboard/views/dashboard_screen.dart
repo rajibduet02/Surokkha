@@ -748,6 +748,7 @@ class _TimelineItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(width: 64),
           Icon(Icons.check_circle_rounded, size: 16, color: _green),
           const SizedBox(width: 12),
           Expanded(
@@ -758,7 +759,7 @@ class _TimelineItem extends StatelessWidget {
                   text,
                   style: TextStyle(color: _textSoft, fontSize: 14),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   time,
                   style: TextStyle(color: _muted, fontSize: 12),
