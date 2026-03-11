@@ -3,12 +3,20 @@ import 'package:get/get.dart';
 import '../bindings/auth_binding.dart';
 import '../bindings/dashboard_binding.dart';
 import '../bindings/otp_binding.dart';
+import '../bindings/contacts_binding.dart';
+import '../bindings/emergency_binding.dart';
+import '../bindings/safe_zones_binding.dart';
 import '../bindings/settings_binding.dart';
 import '../bindings/splash_binding.dart';
 import '../../presentation/auth/views/auth_screen.dart';
 import '../../presentation/dashboard/views/dashboard_screen.dart';
 import '../../presentation/otp/views/otp_screen.dart';
 import '../../presentation/profile_type/views/profile_type_screen.dart';
+import '../../presentation/emergency/views/emergency_screen.dart';
+import '../../presentation/contacts/views/safe_contacts_screen.dart';
+import '../../presentation/safe_zones/views/safe_zones_screen.dart';
+import '../../presentation/profile/views/profile_screen.dart';
+import '../../presentation/premium/views/premium_screen.dart';
 import '../../presentation/settings/views/settings_screen.dart';
 import '../../presentation/onboarding/views/onboarding1_screen.dart';
 import '../../presentation/onboarding/views/onboarding2_screen.dart';
@@ -57,6 +65,29 @@ abstract class AppPages {
       name: _Paths.dashboard,
       page: () => const DashboardScreen(),
       binding: DashboardBinding(),
+    ),
+    GetPage(
+      name: _Paths.safeZones,
+      page: () => const SafeZonesScreen(),
+      binding: SafeZonesBinding(),
+    ),
+    GetPage(
+      name: _Paths.emergency,
+      page: () => const EmergencyScreen(),
+      binding: EmergencyBinding(),
+    ),
+    GetPage(
+      name: _Paths.contacts,
+      page: () => const SafeContactsScreen(),
+      binding: ContactsBinding(),
+    ),
+    GetPage(
+      name: _Paths.profile,
+      page: () => const ProfileScreen(),
+    ),
+    GetPage(
+      name: _Paths.premium,
+      page: () => const PremiumScreen(),
     ),
     GetPage(
       name: _Paths.settings,

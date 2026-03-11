@@ -13,6 +13,11 @@ abstract class AppRoutes {
   static const otp = _Paths.otp;
   static const profileType = _Paths.profileType;
   static const dashboard = _Paths.dashboard;
+  static const safeZones = _Paths.safeZones;
+  static const emergency = _Paths.emergency;
+  static const contacts = _Paths.contacts;
+  static const profile = _Paths.profile;
+  static const premium = _Paths.premium;
   static const home = _Paths.home;
   static const featureA = _Paths.featureA;
   static const featureB = _Paths.featureB;
@@ -31,6 +36,11 @@ abstract class _Paths {
   static const otp = '/otp';
   static const profileType = '/profile-type';
   static const dashboard = '/dashboard';
+  static const safeZones = '/safe-zones';
+  static const emergency = '/emergency';
+  static const contacts = '/contacts';
+  static const profile = '/profile';
+  static const premium = '/premium';
   static const home = '/home';
   static const featureA = '/feature-a';
   static const featureB = '/feature-b';
