@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../../emergency_recording/emergency_recording_screen.dart';
+import '../../tracking/view/tracking_screen.dart';
 import '../../widgets/floating_navbar.dart';
 import '../controllers/emergency_controller.dart';
 
@@ -40,9 +42,9 @@ class EmergencyScreen extends GetView<EmergencyController> {
                   const SizedBox(height: 24),
                   _buildStatusCard(),
                   const SizedBox(height: 24),
-                  _buildMapCard(),
+                  _buildMapCard(context),
                   const SizedBox(height: 24),
-                  _buildEvidenceCard(),
+                  _buildEvidenceCard(context),
                   const SizedBox(height: 24),
                   _buildActionButtons(),
                   const SizedBox(height: 24),
@@ -52,7 +54,7 @@ class EmergencyScreen extends GetView<EmergencyController> {
               ),
             ),
           ),
-          FloatingNavBar(),
+          FloatingNavBar(currentRoute: '/emergency'),
           Obx(() => controller.showCancelPIN.value ? _buildPinModal() : const SizedBox.shrink()),
         ],
       ),
@@ -214,7 +216,7 @@ class EmergencyScreen extends GetView<EmergencyController> {
     );
   }
 
-  Widget _buildMapCard() {
+  Widget _buildMapCard(BuildContext context) {
     return SizedBox(
       height: 190,
       child: Stack(
@@ -239,7 +241,14 @@ class EmergencyScreen extends GetView<EmergencyController> {
             bottom: 16,
             right: 16,
             child: GestureDetector(
-              onTap: () => Get.toNamed('/tracking'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (context) => const TrackingScreen(),
+                  ),
+                );
+              },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
@@ -259,9 +268,16 @@ class EmergencyScreen extends GetView<EmergencyController> {
     );
   }
 
-  Widget _buildEvidenceCard() {
+  Widget _buildEvidenceCard(BuildContext context) {
     return GestureDetector(
-      onTap: () => Get.toNamed('/emergency-recording'),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const EmergencyRecordingScreen(),
+          ),
+        );
+      },
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(

@@ -4,10 +4,10 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_pages.dart';
 
 /// Login form state: phone number, focus, and navigate to OTP.
+/// Phone text is owned by [AuthScreen]'s State to avoid "used after dispose" when re-entering auth.
 class AuthController extends GetxController {
   final phoneNumber = ''.obs;
   final isFocused = false.obs;
-  final phoneController = TextEditingController();
   VoidCallback? onBeforeNavigate;
 
   void setOnBeforeNavigate(VoidCallback cb) {
@@ -38,7 +38,6 @@ class AuthController extends GetxController {
 
   @override
   void onClose() {
-    phoneController.dispose();
     super.onClose();
   }
 }

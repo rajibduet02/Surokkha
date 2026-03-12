@@ -45,7 +45,7 @@ class SafeContactsScreen extends GetView<SafeContactsController> {
               ),
             ),
           ),
-          const FloatingNavBar(),
+          const FloatingNavBar(currentRoute: '/contacts'),
         ],
       ),
     );
@@ -147,7 +147,7 @@ class SafeContactsScreen extends GetView<SafeContactsController> {
   }
 
   Widget _buildContactsSection() {
-    return GetX<SafeContactsController>(
+    return GetBuilder<SafeContactsController>(
       builder: (c) {
         final contacts = c.contacts;
         return Column(

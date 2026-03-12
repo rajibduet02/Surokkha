@@ -44,7 +44,7 @@ class SafeZonesScreen extends GetView<SafeZonesController> {
               ),
             ),
           ),
-          FloatingNavBar(),
+          FloatingNavBar(currentRoute: '/safe-zones'),
         ],
       ),
     );

@@ -54,7 +54,10 @@ class _OtpContentState extends State<_OtpContent>
       Get.find<OtpController>().setOnBeforeNavigate(() {
         _logoGlowController.stop();
       });
-      Get.find<OtpController>().focusNodes[0].requestFocus();
+      Future.delayed(const Duration(milliseconds: 150), () {
+        if (!mounted) return;
+        Get.find<OtpController>().focusNodes[0].requestFocus();
+      });
     });
   }
 
@@ -230,25 +233,41 @@ class _OtpContentState extends State<_OtpContent>
   }
 
   Widget _buildOtpFields(OtpController controller) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(6, (index) {
-        return TweenAnimationBuilder<double>(
-          key: ValueKey('otp_$index'),
-          tween: Tween(begin: 0, end: 1),
-          duration: Duration(milliseconds: 200 + index * 50),
-          builder: (context, value, child) {
-            return Opacity(opacity: value, child: child);
-          },
-          child: Padding(
-            padding: EdgeInsets.only(left: index == 0 ? 0 : 10),
-            child: _OtpDigitBox(
-              index: index,
-              controller: controller,
-            ),
+    return Shortcuts(
+      shortcuts: const {
+        SingleActivator(LogicalKeyboardKey.backspace): _BackspaceIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          _BackspaceIntent: CallbackAction<_BackspaceIntent>(
+            onInvoke: (_) {
+              final idx = controller.focusedIndex ?? 0;
+              controller.onBackspace(idx);
+              return null;
+            },
           ),
-        );
-      }),
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(6, (index) {
+            return TweenAnimationBuilder<double>(
+              key: ValueKey('otp_$index'),
+              tween: Tween(begin: 0, end: 1),
+              duration: Duration(milliseconds: 200 + index * 50),
+              builder: (context, value, child) {
+                return Opacity(opacity: value, child: child);
+              },
+              child: Padding(
+                padding: EdgeInsets.only(left: index == 0 ? 0 : 10),
+                child: _OtpDigitBox(
+                  index: index,
+                  controller: controller,
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
     );
   }
 
@@ -334,7 +353,7 @@ class _OtpContentState extends State<_OtpContent>
       final isVerifying = controller.isVerifying.value;
 
       return _ScaleTap(
-      onTap: isComplete ? null : null,
+      onTap: isComplete && !isVerifying ? () {} : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         width: double.infinity,
@@ -384,60 +403,71 @@ class _OtpDigitBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final digit = controller.otp[index];
-      final hasFocus = controller.focusNodes[index].hasFocus;
-      final isFilled = digit.isNotEmpty;
-      final showGold = hasFocus || isFilled;
+    return GetBuilder<OtpController>(
+      builder: (ctrl) {
+        final digit = ctrl.otp[index];
+        final hasFocus = ctrl.focusNodes[index].hasFocus;
+        final isFilled = digit.isNotEmpty;
+        final showGold = hasFocus || isFilled;
 
-      return Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: _card,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: showGold ? _gold : _borderEmpty,
-            width: showGold ? 2 : 1,
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: _card,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: showGold ? _gold : _borderEmpty,
+              width: showGold ? 2 : 1,
+            ),
           ),
-        ),
-        alignment: Alignment.center,
-        child: TextField(
-          focusNode: controller.focusNodes[index],
-          controller: controller.textControllers[index],
-          onChanged: (value) {
-            if (value.length > 1) {
-              controller.onPaste(value);
-              return;
-            }
-            if (value.isEmpty) {
-              controller.clearDigit(index);
-              return;
-            }
-            controller.setDigit(index, value);
-          },
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(1),
-          ],
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+          alignment: Alignment.center,
+          child: TextField(
+            focusNode: ctrl.focusNodes[index],
+            controller: ctrl.textControllers[index],
+            onChanged: (value) {
+              if (value.length > 1) {
+                Future.microtask(() => ctrl.onPaste(value));
+                return;
+              }
+              if (value.isEmpty) {
+                ctrl.clearDigit(index);
+                return;
+              }
+              ctrl.setDigit(index, value);
+            },
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(1),
+            ],
+            textAlign: TextAlign.center,
+            cursorColor: Colors.transparent,
+            showCursor: false,
+            enableInteractiveSelection: false,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+              isDense: true,
+            ),
           ),
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            contentPadding: EdgeInsets.zero,
-            isDense: true,
-          ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
+}
+
+/// Intent for Shortcuts to handle backspace in OTP fields.
+class _BackspaceIntent extends Intent {
+  const _BackspaceIntent();
 }
 
 class _ScaleTap extends StatefulWidget {

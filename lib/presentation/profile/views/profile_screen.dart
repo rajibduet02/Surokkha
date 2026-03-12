@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../app/routes/app_pages.dart';
 import '../../dashboard/controllers/dashboard_controller.dart';
 import '../../widgets/floating_navbar.dart';
 
@@ -66,7 +67,7 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
           ),
-          const FloatingNavBar(),
+          FloatingNavBar(currentRoute: '/profile'),
         ],
       ),
     );
@@ -290,6 +291,36 @@ class ProfileScreen extends StatelessWidget {
       ],
     );
   }
+
+  /// Shows sign-out confirmation dialog. Returns true if user confirmed Sign Out.
+  static Future<bool?> _showSignOutDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Sign Out',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        content: Text(
+          'Are you sure you want to sign out? You will need to sign in again to access your account.',
+          style: TextStyle(color: _muted, fontSize: 14, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel', style: TextStyle(color: _gold)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Sign Out', style: TextStyle(color: _red, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _StatsCardWidget extends StatelessWidget {
@@ -412,8 +443,15 @@ class _SettingItemWidget extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          if (item.route != null) Get.toNamed(item.route!);
+        onTap: () async {
+          if (item.label == 'Sign Out') {
+            final confirm = await ProfileScreen._showSignOutDialog(context);
+            if (confirm == true && context.mounted) {
+              Get.offAllNamed(AppRoutes.auth);
+            }
+          } else if (item.route != null) {
+            Get.toNamed(item.route!);
+          }
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

@@ -29,10 +29,12 @@ class _LoginContentState extends State<_LoginContent>
   late AnimationController _formController;
   late AnimationController _bottomController;
   late AnimationController _logoGlowController;
+  late TextEditingController _phoneController;
 
   @override
   void initState() {
     super.initState();
+    _phoneController = TextEditingController();
     _topController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -70,6 +72,7 @@ class _LoginContentState extends State<_LoginContent>
 
   @override
   void dispose() {
+    _phoneController.dispose();
     _topController.stop();
     _topController.dispose();
     _formController.stop();
@@ -273,7 +276,7 @@ class _LoginContentState extends State<_LoginContent>
               ),
               Expanded(
                 child: TextField(
-                  controller: controller.phoneController,
+                  controller: _phoneController,
                   onChanged: controller.setPhoneNumber,
                   onTap: () => controller.setFocused(true),
                   onTapOutside: (_) => controller.setFocused(false),

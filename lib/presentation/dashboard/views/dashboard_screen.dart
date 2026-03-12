@@ -56,7 +56,7 @@ class DashboardScreen extends StatelessWidget {
               ),
             ),
           ),
-          FloatingNavBar(),
+          FloatingNavBar(currentRoute: '/dashboard'),
         ],
       ),
     );
@@ -326,11 +326,10 @@ class _SosButtonSectionState extends State<_SosButtonSection>
       opacity: 1,
       duration: const Duration(milliseconds: 300),
       child: Center(
-        child: GestureDetector(
+        child: _ScaleTap(
+          scaleDown: 0.95,
           onTap: () => Get.toNamed('/emergency'),
-          child: _ScaleTap(
-            scaleDown: 0.95,
-            child: SizedBox(
+          child: SizedBox(
               width: 140,
               height: 140,
               child: Stack(
@@ -391,17 +390,17 @@ class _SosButtonSectionState extends State<_SosButtonSection>
               ),
             ),
           ),
-        ),
       ),
     );
   }
 }
 
 class _ScaleTap extends StatefulWidget {
-  const _ScaleTap({required this.child, this.scaleDown = 0.9});
+  const _ScaleTap({required this.child, this.scaleDown = 0.9, this.onTap});
 
   final Widget child;
   final double scaleDown;
+  final VoidCallback? onTap;
 
   @override
   State<_ScaleTap> createState() => _ScaleTapState();
@@ -435,6 +434,7 @@ class _ScaleTapState extends State<_ScaleTap> with SingleTickerProviderStateMixi
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) => _controller.reverse(),
       onTapCancel: () => _controller.reverse(),
+      onTap: widget.onTap != null ? () => widget.onTap!() : null,
       child: AnimatedBuilder(
         animation: _scale,
         builder: (context, child) => Transform.scale(

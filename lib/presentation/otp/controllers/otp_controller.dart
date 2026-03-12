@@ -14,6 +14,10 @@ class OtpController extends GetxController {
   Timer? _verifyTimer;
   VoidCallback? onBeforeNavigate;
 
+  /// Index of the OTP box that currently has focus (for Shortcuts backspace).
+  int? _focusedIndex;
+  int? get focusedIndex => _focusedIndex;
+
   void setOnBeforeNavigate(VoidCallback cb) {
     onBeforeNavigate = cb;
   }
@@ -24,6 +28,13 @@ class OtpController extends GetxController {
   void onInit() {
     super.onInit();
     ever(otp, (_) => _onOtpChanged());
+    for (var i = 0; i < focusNodes.length; i++) {
+      final idx = i;
+      focusNodes[i].addListener(() {
+        if (focusNodes[idx].hasFocus) _focusedIndex = idx;
+        update();
+      });
+    }
   }
 
   void _onOtpChanged() {
@@ -62,11 +73,14 @@ class OtpController extends GetxController {
   }
 
   void onBackspace(int index) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (otp[index].isEmpty && index > 0) {
-        focusNodes[index - 1].requestFocus();
-      }
-    });
+    if (otp[index].isNotEmpty) {
+      clearDigit(index);
+      return;
+    }
+    if (index > 0) {
+      focusNodes[index - 1].requestFocus();
+      clearDigit(index - 1);
+    }
   }
 
   void onPaste(String pasted) {
