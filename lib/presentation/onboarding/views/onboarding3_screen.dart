@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_pages.dart';
@@ -144,73 +145,85 @@ class _Onboarding3ScreenState extends State<Onboarding3Screen>
       body: RepaintBoundary(
         child: SafeArea(
           child: SizedBox.expand(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 24),
-                    const Spacer(flex: 1),
-                    AnimatedBuilder(
-                      animation: _contentController,
-                      builder: (context, _) {
-                        final opacity =
-                            Curves.easeOut.transform(_contentController.value);
-                        final dy = 40 *
-                            (1 - Curves.easeOut.transform(_contentController.value));
-                        return Opacity(
-                          opacity: opacity,
-                          child: Transform.translate(
-                            offset: Offset(0, dy),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildIconSection(),
-                                const SizedBox(height: 32),
-                                _buildHeadline(),
-                                const SizedBox(height: 32),
-                                _buildSubtext(),
-                              ],
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 430),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 48,
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      const Spacer(flex: 1),
+                      AnimatedBuilder(
+                        animation: _contentController,
+                        builder: (context, _) {
+                          final opacity = Curves.easeOut.transform(
+                            _contentController.value,
+                          );
+                          final dy =
+                              40 *
+                              (1 -
+                                  Curves.easeOut.transform(
+                                    _contentController.value,
+                                  ));
+                          return Opacity(
+                            opacity: opacity,
+                            child: Transform.translate(
+                              offset: Offset(0, dy),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildIconSection(),
+                                  const SizedBox(height: 32),
+                                  _buildHeadline(),
+                                  const SizedBox(height: 32),
+                                  _buildSubtext(),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                    const Spacer(flex: 1),
-                    AnimatedBuilder(
-                      animation: _bottomController,
-                      builder: (context, _) {
-                        final opacity =
-                            Curves.easeOut.transform(_bottomController.value);
-                        final dy = 20 *
-                            (1 -
-                                Curves.easeOut.transform(_bottomController.value));
-                        return Opacity(
-                          opacity: opacity,
-                          child: Transform.translate(
-                            offset: Offset(0, dy),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildIndicators(),
-                                const SizedBox(height: 24),
-                                _buildGetStartedButton(),
-                                const SizedBox(height: 8),
-                                _buildSkipButton(),
-                              ],
+                          );
+                        },
+                      ),
+                      const Spacer(flex: 1),
+                      AnimatedBuilder(
+                        animation: _bottomController,
+                        builder: (context, _) {
+                          final opacity = Curves.easeOut.transform(
+                            _bottomController.value,
+                          );
+                          final dy =
+                              20 *
+                              (1 -
+                                  Curves.easeOut.transform(
+                                    _bottomController.value,
+                                  ));
+                          return Opacity(
+                            opacity: opacity,
+                            child: Transform.translate(
+                              offset: Offset(0, dy),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildIndicators(),
+                                  const SizedBox(height: 24),
+                                  _buildGetStartedButton(),
+                                  const SizedBox(height: 8),
+                                  _buildSkipButton(),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
         ),
       ),
     );
@@ -226,13 +239,14 @@ class _Onboarding3ScreenState extends State<Onboarding3Screen>
         _sirenRotateController,
       ]),
       builder: (context, _) {
-        final scale = 0.8 +
-            0.2 * Curves.easeOut.transform(_iconBlockController.value);
+        final scale =
+            0.8 + 0.2 * Curves.easeOut.transform(_iconBlockController.value);
         final opacity = Curves.easeOut.transform(_iconBlockController.value);
         final glowScale = 1.0 + 0.1 * _glowPulseController.value;
         final glowOpacity = 0.2 + 0.1 * _glowPulseController.value;
         final badgeScale = Curves.elasticOut.transform(_badgeController.value);
-        final phoneAngle = (10 * math.pi / 180) *
+        final phoneAngle =
+            (10 * math.pi / 180) *
             math.sin(_phoneRotateController.value * 2 * math.pi);
         final sirenAngle = _sirenRotateController.value * 2 * math.pi;
 
@@ -282,10 +296,16 @@ class _Onboarding3ScreenState extends State<Onboarding3Screen>
                   alignment: Alignment.center,
                   child: Transform.rotate(
                     angle: phoneAngle,
-                    child: Icon(
-                      Icons.phone_outlined,
-                      size: 80,
-                      color: _gold,
+                    // child: Icon(
+                    //   Icons.phone_outlined,
+                    //   size: 80,
+                    //   color: _gold,
+                    // ),
+                    child: SvgPicture.asset(
+                      'assets/icons/phone.svg',
+                      width: 80,
+                      height: 80,
+                      color: const Color(0xFFD4AF37),
                     ),
                   ),
                 ),
@@ -310,9 +330,15 @@ class _Onboarding3ScreenState extends State<Onboarding3Screen>
                       alignment: Alignment.center,
                       child: Transform.rotate(
                         angle: sirenAngle,
-                        child: Icon(
-                          Icons.emergency,
-                          size: 28,
+                        // child: Icon(
+                        //   Icons.emergency,
+                        //   size: 28,
+                        //   color: Colors.white,
+                        // ),
+                        child: SvgPicture.asset(
+                          'assets/icons/siren.svg',
+                          width: 28,
+                          height: 28,
                           color: Colors.white,
                         ),
                       ),
@@ -331,8 +357,7 @@ class _Onboarding3ScreenState extends State<Onboarding3Screen>
     return AnimatedBuilder(
       animation: _headlineController,
       builder: (context, _) {
-        final opacity =
-            Curves.easeOut.transform(_headlineController.value);
+        final opacity = Curves.easeOut.transform(_headlineController.value);
         final dy =
             20 * (1 - Curves.easeOut.transform(_headlineController.value));
         return Opacity(
@@ -365,8 +390,7 @@ class _Onboarding3ScreenState extends State<Onboarding3Screen>
     return AnimatedBuilder(
       animation: _subtextController,
       builder: (context, _) {
-        final opacity =
-            Curves.easeOut.transform(_subtextController.value);
+        final opacity = Curves.easeOut.transform(_subtextController.value);
         return Opacity(
           opacity: opacity,
           child: Padding(
@@ -374,11 +398,7 @@ class _Onboarding3ScreenState extends State<Onboarding3Screen>
             child: Text(
               'Direct hotline integration with Bangladesh Police. Instant connection to authorities in critical situations.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _grayLight,
-                fontSize: 16,
-                height: 1.5,
-              ),
+              style: TextStyle(color: _grayLight, fontSize: 16, height: 1.5),
             ),
           ),
         );
@@ -412,9 +432,7 @@ class _Onboarding3ScreenState extends State<Onboarding3Screen>
           width: 32,
           height: 4,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [_gold, _goldLight],
-            ),
+            gradient: const LinearGradient(colors: [_gold, _goldLight]),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -434,9 +452,7 @@ class _Onboarding3ScreenState extends State<Onboarding3Screen>
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [_gold, _goldLight],
-          ),
+          gradient: const LinearGradient(colors: [_gold, _goldLight]),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -477,17 +493,13 @@ class _Onboarding3ScreenState extends State<Onboarding3Screen>
             child: Text(
               'Skip',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _gray,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: _gray, fontSize: 14),
             ),
           ),
         ),
       ),
     );
   }
-
 }
 
 class _ScaleTap extends StatefulWidget {
@@ -512,9 +524,10 @@ class _ScaleTapState extends State<_ScaleTap>
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
-    _scale = Tween<double>(begin: 1, end: 0.98).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scale = Tween<double>(
+      begin: 1,
+      end: 0.98,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -533,10 +546,8 @@ class _ScaleTapState extends State<_ScaleTap>
       onTap: widget.onTap,
       child: AnimatedBuilder(
         animation: _scale,
-        builder: (context, child) => Transform.scale(
-          scale: _scale.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: _scale.value, child: child),
         child: widget.child,
       ),
     );

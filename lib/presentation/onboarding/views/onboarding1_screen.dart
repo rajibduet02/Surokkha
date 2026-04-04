@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_pages.dart';
@@ -114,74 +115,91 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen>
       body: RepaintBoundary(
         child: SafeArea(
           child: SizedBox.expand(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 24),
-                    // Top spacer
-                    const Spacer(flex: 1),
-
-                  // Content
-                  AnimatedBuilder(
-                    animation: _contentController,
-                    builder: (context, _) {
-                      final opacity = Curves.easeOut.transform(_contentController.value);
-                      final dy = 40 * (1 - Curves.easeOut.transform(_contentController.value));
-                      return Opacity(
-                        opacity: opacity,
-                        child: Transform.translate(
-                          offset: Offset(0, dy),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildIconSection(),
-                              const SizedBox(height: 32),
-                              _buildHeadline(),
-                              const SizedBox(height: 32),
-                              _buildSubtext(),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 430),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 48,
                   ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      // Top spacer
+                      const Spacer(flex: 1),
 
-                  const Spacer(flex: 1),
+                      // Content
+                      AnimatedBuilder(
+                        animation: _contentController,
+                        builder: (context, _) {
+                          final opacity = Curves.easeOut.transform(
+                            _contentController.value,
+                          );
+                          final dy =
+                              40 *
+                              (1 -
+                                  Curves.easeOut.transform(
+                                    _contentController.value,
+                                  ));
+                          return Opacity(
+                            opacity: opacity,
+                            child: Transform.translate(
+                              offset: Offset(0, dy),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildIconSection(),
+                                  const SizedBox(height: 32),
+                                  _buildHeadline(),
+                                  const SizedBox(height: 32),
+                                  _buildSubtext(),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
 
-                  // Bottom section
-                  AnimatedBuilder(
-                    animation: _bottomController,
-                    builder: (context, _) {
-                      final opacity = Curves.easeOut.transform(_bottomController.value);
-                      final dy = 20 * (1 - Curves.easeOut.transform(_bottomController.value));
-                      return Opacity(
-                        opacity: opacity,
-                        child: Transform.translate(
-                          offset: Offset(0, dy),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildIndicators(),
-                              const SizedBox(height: 24),
-                              _buildContinueButton(),
-                              const SizedBox(height: 8),
-                              _buildSkipButton(),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                      const Spacer(flex: 1),
+
+                      // Bottom section
+                      AnimatedBuilder(
+                        animation: _bottomController,
+                        builder: (context, _) {
+                          final opacity = Curves.easeOut.transform(
+                            _bottomController.value,
+                          );
+                          final dy =
+                              20 *
+                              (1 -
+                                  Curves.easeOut.transform(
+                                    _bottomController.value,
+                                  ));
+                          return Opacity(
+                            opacity: opacity,
+                            child: Transform.translate(
+                              offset: Offset(0, dy),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildIndicators(),
+                                  const SizedBox(height: 24),
+                                  _buildContinueButton(),
+                                  const SizedBox(height: 8),
+                                  _buildSkipButton(),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-        ),
         ),
       ),
     );
@@ -191,7 +209,8 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen>
     return AnimatedBuilder(
       animation: Listenable.merge([_iconBlockController, _glowPulseController]),
       builder: (context, _) {
-        final scale = 0.8 + 0.2 * Curves.easeOut.transform(_iconBlockController.value);
+        final scale =
+            0.8 + 0.2 * Curves.easeOut.transform(_iconBlockController.value);
         final opacity = Curves.easeOut.transform(_iconBlockController.value);
         final glowScale = 1.0 + 0.1 * _glowPulseController.value;
         final glowOpacity = 0.2 + 0.1 * _glowPulseController.value;
@@ -240,9 +259,15 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen>
                     ),
                   ),
                   alignment: Alignment.center,
-                  child: Icon(
-                    Icons.shield_outlined,
-                    size: 80,
+                  // child: Icon(
+                  //   Icons.shield_outlined,
+                  //   size: 80,
+                  //   color: _gold,
+                  // ),
+                  child: SvgPicture.asset(
+                    'assets/icons/shield-alert.svg',
+                    width: 80,
+                    height: 80,
                     color: _gold,
                   ),
                 ),
@@ -259,7 +284,8 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen>
       animation: _headlineController,
       builder: (context, _) {
         final opacity = Curves.easeOut.transform(_headlineController.value);
-        final dy = 20 * (1 - Curves.easeOut.transform(_headlineController.value));
+        final dy =
+            20 * (1 - Curves.easeOut.transform(_headlineController.value));
         return Opacity(
           opacity: opacity,
           child: Transform.translate(
@@ -298,11 +324,7 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen>
             child: Text(
               'One tap to alert your trusted contacts and authorities. Help arrives within seconds when you need it most.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _grayLight,
-                fontSize: 16,
-                height: 1.5,
-              ),
+              style: TextStyle(color: _grayLight, fontSize: 16, height: 1.5),
             ),
           ),
         );
@@ -318,9 +340,7 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen>
           width: 32,
           height: 4,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [_gold, _goldLight],
-            ),
+            gradient: const LinearGradient(colors: [_gold, _goldLight]),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -358,9 +378,7 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen>
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [_gold, _goldLight],
-          ),
+          gradient: const LinearGradient(colors: [_gold, _goldLight]),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -401,10 +419,7 @@ class _Onboarding1ScreenState extends State<Onboarding1Screen>
             child: Text(
               'Skip',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _gray,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: _gray, fontSize: 14),
             ),
           ),
         ),
@@ -424,7 +439,8 @@ class _ScaleTap extends StatefulWidget {
   State<_ScaleTap> createState() => _ScaleTapState();
 }
 
-class _ScaleTapState extends State<_ScaleTap> with SingleTickerProviderStateMixin {
+class _ScaleTapState extends State<_ScaleTap>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scale;
 
@@ -435,9 +451,10 @@ class _ScaleTapState extends State<_ScaleTap> with SingleTickerProviderStateMixi
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
-    _scale = Tween<double>(begin: 1, end: 0.98).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scale = Tween<double>(
+      begin: 1,
+      end: 0.98,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -456,10 +473,8 @@ class _ScaleTapState extends State<_ScaleTap> with SingleTickerProviderStateMixi
       onTap: widget.onTap,
       child: AnimatedBuilder(
         animation: _scale,
-        builder: (context, child) => Transform.scale(
-          scale: _scale.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: _scale.value, child: child),
         child: widget.child,
       ),
     );

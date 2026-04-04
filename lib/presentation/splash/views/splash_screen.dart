@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import '../controllers/splash_controller.dart';
@@ -183,33 +184,61 @@ class _SplashContentState extends State<_SplashContent>
     );
   }
 
+  // Widget _buildLogo() {
+  //   return Stack(
+  //     alignment: Alignment.center,
+  //     children: [
+  //       Icon(
+  //         Icons.shield_outlined,
+  //         size: 110,
+  //         color: _gold,
+  //       ),
+  //       Positioned(
+  //         top: 12,
+  //         right: 10,
+  //         child: Container(
+  //           width: 26,
+  //           height: 26,
+  //           decoration: const BoxDecoration(
+  //             shape: BoxShape.circle,
+  //             color: _gold,
+  //           ),
+  //           child: const Icon(
+  //             Icons.star,
+  //             size: 14,
+  //             color: Colors.black,
+  //           ),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
+
   Widget _buildLogo() {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Icon(
-          Icons.shield_outlined,
-          size: 110,
-          color: _gold,
+  return Stack(
+    clipBehavior: Clip.none,
+    alignment: Alignment.center,
+    children: [
+      // 🔰 Shield SVG
+      SvgPicture.asset(
+        'assets/icons/shield-alert.svg',
+        width: 110,
+        height: 110,
+        color: const Color(0xFFD4AF37), // shield color
+      ),
+
+      // 👑 Crown SVG
+      Positioned(
+        top: -10,
+        right: -10,
+        child: SvgPicture.asset(
+          'assets/icons/crown.svg',
+          width: 40,
+          height: 40,
+          color: const Color(0xFFF6D365), // crown color
         ),
-        Positioned(
-          top: 12,
-          right: 10,
-          child: Container(
-            width: 26,
-            height: 26,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: _gold,
-            ),
-            child: const Icon(
-              Icons.star,
-              size: 14,
-              color: Colors.black,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 }

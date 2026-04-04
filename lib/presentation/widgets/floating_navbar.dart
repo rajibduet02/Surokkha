@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 // Route paths (match React FloatingNav).
@@ -94,16 +95,18 @@ class FloatingNavBar extends StatelessWidget {
 }
 
 class _NavItemData {
-  const _NavItemData({
-    required this.route,
-    required this.label,
-    required this.icon,
-    this.isSos = false,
-  });
+const _NavItemData({
+  required this.route,
+  required this.label,
+  this.icon,
+  this.svgPath,
+  this.isSos = false,
+});
   final String route;
   final String label;
-  final IconData icon;
   final bool isSos;
+  final IconData? icon;
+  final String? svgPath;
 
   static const List<_NavItemData> items = [
     _NavItemData(route: routeDashboard, label: 'Home', icon: Icons.home_rounded),
@@ -179,11 +182,18 @@ class _NavItem extends StatelessWidget {
                   width: _iconContainerSize,
                   height: _iconContainerSize,
                   alignment: Alignment.center,
-                  child: Icon(
-                    data.icon,
-                    size: _iconSize,
-                    color: _iconColor,
-                  ),
+                  child: data.isSos
+    ? SvgPicture.asset(
+        'assets/icons/shield-alert.svg',
+        width: _iconSize,
+        height: _iconSize,
+        color: _iconColor,
+      )
+    : Icon(
+        data.icon,
+        size: _iconSize,
+        color: _iconColor,
+      ),
                 ),
                 SizedBox(height: _iconLabelGap),
                 AnimatedDefaultTextStyle(
