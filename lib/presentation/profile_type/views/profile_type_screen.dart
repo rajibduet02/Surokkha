@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_pages.dart';
+import '../../dashboard/controllers/dashboard_controller.dart';
 
 // Design tokens (match React/Figma)
 const Color _bgDark = Color(0xFF0A0A0F);
@@ -25,8 +26,12 @@ class _ProfileTypeScreenState extends State<ProfileTypeScreen> {
 
   void _onContinue() {
     if (selectedType == null) return;
-    // TODO: Set user profile in app context/controller/store when available.
-    // type: selectedType, name: selectedType == "child" ? "Child User" : "Woman User"
+    final type = selectedType!;
+    final name = type == 'child' ? 'Child User' : 'Woman User';
+    if (!Get.isRegistered<DashboardController>()) {
+      Get.put(DashboardController());
+    }
+    Get.find<DashboardController>().setUserProfile(name: name, type: type);
     if (Get.currentRoute == AppRoutes.profileType) {
       Get.toNamed(AppRoutes.dashboard);
     }

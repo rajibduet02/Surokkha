@@ -90,32 +90,59 @@ class _LoginContentState extends State<_LoginContent>
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: true,
       body: RepaintBoundary(
         child: SafeArea(
-          child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 430),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-              child: Column(
-                children: [
-                  const SizedBox(height: 32),
-                  _buildTopSection(controller),
-                  const Spacer(flex: 1),
-                  _buildFormSection(controller),
-                  const Spacer(flex: 1),
-                  _buildBottomSection(controller),
-                ],
-              ),
-            ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isSmall = MediaQuery.of(context).size.height < 700;
+              return SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 430),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(height: isSmall ? 16 : 24),
+                                    _buildTopSection(controller, isSmall),
+                                    SizedBox(height: isSmall ? 16 : 24),
+                                    _buildFormSection(controller),
+                                    SizedBox(height: isSmall ? 16 : 24),
+                                  ],
+                                ),
+                              ),
+                              _buildBottomSection(controller, isSmall),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
-        ),
         ),
       ),
     );
   }
 
-  Widget _buildTopSection(AuthController controller) {
+  Widget _buildTopSection(AuthController controller, bool isSmall) {
     return AnimatedBuilder(
       animation: _topController,
       builder: (context, _) {
@@ -128,18 +155,22 @@ class _LoginContentState extends State<_LoginContent>
             child: Column(
               children: [
                 _buildLogo(controller),
-                const SizedBox(height: 16),
+                SizedBox(height: isSmall ? 12 : 16),
                 Text(
                   'Welcome Back',
+                  softWrap: true,
+                  overflow: TextOverflow.visible,
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
                     color: AppColors.foreground,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: isSmall ? 6 : 8),
                 Text(
                   'Sign in to continue protection',
+                  softWrap: true,
+                  overflow: TextOverflow.visible,
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.mutedForeground,
@@ -218,6 +249,8 @@ class _LoginContentState extends State<_LoginContent>
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             'Phone Number',
+            softWrap: true,
+            overflow: TextOverflow.visible,
             style: TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
@@ -244,29 +277,34 @@ class _LoginContentState extends State<_LoginContent>
           ),
           child: Row(
             children: [
-              // Country code selector
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('🇧🇩', style: TextStyle(fontSize: 20)),
-                    const SizedBox(width: 6),
-                    Text(
-                      '+880',
-                      style: TextStyle(
-                        color: AppColors.foreground,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
+              Flexible(
+                fit: FlexFit.loose,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('🇧🇩', style: TextStyle(fontSize: 20)),
+                      const SizedBox(width: 6),
+                      Text(
+                        '+880',
+                        softWrap: true,
+                        overflow: TextOverflow.visible,
+                        style: TextStyle(
+                          color: AppColors.foreground,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      size: 14,
-                      color: AppColors.mutedForeground,
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 14,
+                        color: AppColors.mutedForeground,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Container(
@@ -317,6 +355,8 @@ class _LoginContentState extends State<_LoginContent>
           padding: const EdgeInsets.only(left: 4, top: 8),
           child: Text(
             "We'll send you a verification code",
+            softWrap: true,
+            overflow: TextOverflow.visible,
             style: TextStyle(
               fontSize: 12,
               color: AppColors.mutedForeground,
@@ -327,7 +367,7 @@ class _LoginContentState extends State<_LoginContent>
     );
   }
 
-  Widget _buildBottomSection(AuthController controller) {
+  Widget _buildBottomSection(AuthController controller, bool isSmall) {
     return AnimatedBuilder(
       animation: _bottomController,
       builder: (context, _) {
@@ -340,8 +380,9 @@ class _LoginContentState extends State<_LoginContent>
             child: Column(
               children: [
                 Obx(() => _buildContinueButton(controller)),
-                const SizedBox(height: 24),
+                SizedBox(height: isSmall ? 16 : 24),
                 _buildTermsText(),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -355,40 +396,46 @@ class _LoginContentState extends State<_LoginContent>
 
     return _ScaleTap(
       onTap: canContinue ? controller.navigateToOtp : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+      child: SizedBox(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          gradient: canContinue
-              ? const LinearGradient(
-                  colors: [
-                    AppColors.goldPrimary,
-                    AppColors.goldSecondary,
-                  ],
-                )
-              : null,
-          color: canContinue ? null : AppColors.secondary,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          boxShadow: canContinue
-              ? [
-                  BoxShadow(
-                    color: AppColors.goldPrimary.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          'Continue',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: canContinue
-                ? AppColors.primaryForeground
-                : AppColors.mutedForeground,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: canContinue
+                ? const LinearGradient(
+                    colors: [
+                      AppColors.goldPrimary,
+                      AppColors.goldSecondary,
+                    ],
+                  )
+                : null,
+            color: canContinue ? null : AppColors.secondary,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            boxShadow: canContinue
+                ? [
+                    BoxShadow(
+                      color: AppColors.goldPrimary.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            'Continue',
+            softWrap: true,
+            overflow: TextOverflow.visible,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: canContinue
+                  ? AppColors.primaryForeground
+                  : AppColors.mutedForeground,
+            ),
           ),
         ),
       ),
@@ -400,6 +447,8 @@ class _LoginContentState extends State<_LoginContent>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RichText(
         textAlign: TextAlign.center,
+        softWrap: true,
+        overflow: TextOverflow.visible,
         text: TextSpan(
           style: TextStyle(
             fontSize: 12,

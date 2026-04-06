@@ -73,40 +73,39 @@ class _OtpContentState extends State<_OtpContent>
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<OtpController>();
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Scaffold(
       backgroundColor: _bg,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: SizedBox.expand(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTopSection(controller),
-                const SizedBox(height: 40),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildOtpSection(controller),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              keyboardDismissBehavior:
+                  ScrollViewKeyboardDismissBehavior.onDrag,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    32,
+                    48,
+                    32,
+                    bottomInset + 16,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildTopSection(controller),
+                      const SizedBox(height: 40),
+                      _buildOtpSection(controller),
+                      _buildBottomSection(controller),
+                    ],
                   ),
                 ),
-                _buildBottomSection(controller),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -221,7 +220,7 @@ class _OtpContentState extends State<_OtpContent>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildOtpFields(controller),
+              SizedBox(width: double.infinity, child: _buildOtpFields(controller)),
               const SizedBox(height: 28),
               _buildResendSection(),
               _buildVerifyingIndicator(controller),
@@ -247,25 +246,58 @@ class _OtpContentState extends State<_OtpContent>
             },
           ),
         },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(6, (index) {
-            return TweenAnimationBuilder<double>(
-              key: ValueKey('otp_$index'),
-              tween: Tween(begin: 0, end: 1),
-              duration: Duration(milliseconds: 200 + index * 50),
-              builder: (context, value, child) {
-                return Opacity(opacity: value, child: child);
-              },
-              child: Padding(
-                padding: EdgeInsets.only(left: index == 0 ? 0 : 10),
-                child: _OtpDigitBox(
-                  index: index,
-                  controller: controller,
-                ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final mq = MediaQuery.sizeOf(context).width;
+            final maxW = constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : (mq - 64).clamp(200.0, mq);
+
+            const count = 6;
+            const minGap = 4.0;
+            const maxGap = 10.0;
+            var gap = maxGap;
+            var cellW = (maxW - (count - 1) * gap) / count;
+            if (cellW > 48) {
+              cellW = 48;
+              gap = (maxW - count * cellW) / (count - 1);
+              gap = gap.clamp(minGap, maxGap);
+              cellW = (maxW - (count - 1) * gap) / count;
+            } else if (cellW < 36) {
+              gap = minGap;
+              cellW = (maxW - (count - 1) * gap) / count;
+            }
+
+            return SizedBox(
+              width: maxW,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  for (int index = 0; index < count; index++) ...[
+                    if (index > 0) SizedBox(width: gap),
+                    SizedBox(
+                      width: cellW,
+                      height: cellW,
+                      child: TweenAnimationBuilder<double>(
+                        key: ValueKey('otp_$index'),
+                        tween: Tween(begin: 0, end: 1),
+                        duration: Duration(milliseconds: 200 + index * 50),
+                        builder: (context, value, child) {
+                          return Opacity(opacity: value, child: child);
+                        },
+                        child: _OtpDigitBox(
+                          index: index,
+                          controller: controller,
+                          size: cellW,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             );
-          }),
+          },
         ),
       ),
     );
@@ -283,26 +315,26 @@ class _OtpContentState extends State<_OtpContent>
             style: TextStyle(color: _muted, fontSize: 14),
             textAlign: TextAlign.center,
           ),
-        const SizedBox(height: 8),
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: Get.find<OtpController>().resendCode,
-            borderRadius: BorderRadius.circular(4),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                'Resend Code',
-                style: TextStyle(
-                  color: _gold,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+          const SizedBox(height: 8),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: Get.find<OtpController>().resendCode,
+              borderRadius: BorderRadius.circular(4),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  'Resend Code',
+                  style: TextStyle(
+                    color: _gold,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
       ),
     );
   }
@@ -314,27 +346,30 @@ class _OtpContentState extends State<_OtpContent>
       }
       return Padding(
         padding: const EdgeInsets.only(top: 32),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(_success),
+        child: SizedBox(
+          width: double.infinity,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(_success),
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Verifying...',
-              style: TextStyle(
-                color: _success,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+              const SizedBox(width: 8),
+              Text(
+                'Verifying...',
+                style: TextStyle(
+                  color: _success,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     });
@@ -343,7 +378,10 @@ class _OtpContentState extends State<_OtpContent>
   Widget _buildBottomSection(OtpController controller) {
     return Padding(
       padding: const EdgeInsets.only(top: 48),
-      child: _buildVerifyButton(controller),
+      child: SizedBox(
+        width: double.infinity,
+        child: _buildVerifyButton(controller),
+      ),
     );
   }
 
@@ -353,110 +391,170 @@ class _OtpContentState extends State<_OtpContent>
       final isVerifying = controller.isVerifying.value;
 
       return _ScaleTap(
-      onTap: isComplete && !isVerifying ? () {} : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        width: double.infinity,
-        height: 56,
-        decoration: BoxDecoration(
-          gradient: isComplete
-              ? const LinearGradient(
-                  colors: [_gold, _goldLight],
-                )
-              : null,
-          color: isComplete ? null : const Color(0xFF2C2C2C),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: isComplete
-              ? [
-                  BoxShadow(
-                    color: _gold.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          isVerifying ? 'Verifying...' : 'Verify Code',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: isComplete ? const Color(0xFF0A0A0F) : Colors.white,
+        onTap: isComplete && !isVerifying ? () {} : null,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            gradient: isComplete
+                ? const LinearGradient(
+                    colors: [_gold, _goldLight],
+                  )
+                : null,
+            color: isComplete ? null : const Color(0xFF2C2C2C),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: isComplete
+                ? [
+                    BoxShadow(
+                      color: _gold.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            isVerifying ? 'Verifying...' : 'Verify Code',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: isComplete ? const Color(0xFF0A0A0F) : Colors.white,
+            ),
           ),
         ),
-      ),
-    );
+      );
     });
   }
 }
 
-class _OtpDigitBox extends StatelessWidget {
-  const _OtpDigitBox({required this.index, required this.controller});
+class _OtpDigitBox extends StatefulWidget {
+  const _OtpDigitBox({
+    required this.index,
+    required this.controller,
+    this.size = 48,
+  });
 
   final int index;
   final OtpController controller;
+  final double size;
 
+  @override
+  State<_OtpDigitBox> createState() => _OtpDigitBoxState();
+}
+
+class _OtpDigitBoxState extends State<_OtpDigitBox> {
   static const Color _card = Color(0xFF1A1A22);
   static const Color _borderEmpty = Color(0xFF1A1A22);
   static const Color _gold = Color(0xFFD4AF37);
+
+  final GlobalKey _boxKey = GlobalKey();
+
+  FocusNode get _focusNode => widget.controller.focusNodes[widget.index];
+
+  void _scrollIntoView() {
+    final ctx = _boxKey.currentContext;
+    if (ctx == null || !ctx.mounted) return;
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+      alignment: 0.22,
+      alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+    );
+  }
+
+  void _onFocusChanged() {
+    if (!_focusNode.hasFocus) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_focusNode.hasFocus) return;
+      _scrollIntoView();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_focusNode.hasFocus) return;
+        _scrollIntoView();
+      });
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(_onFocusChanged);
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChanged);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<OtpController>(
       builder: (ctrl) {
-        final digit = ctrl.otp[index];
-        final hasFocus = ctrl.focusNodes[index].hasFocus;
+        final digit = ctrl.otp[widget.index];
+        final hasFocus = ctrl.focusNodes[widget.index].hasFocus;
         final isFilled = digit.isNotEmpty;
         final showGold = hasFocus || isFilled;
 
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: _card,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: showGold ? _gold : _borderEmpty,
-              width: showGold ? 2 : 1,
+        final fontSize = (widget.size * 0.42).clamp(16.0, 20.0);
+        final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+
+        return ClipRect(
+          key: _boxKey,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: widget.size,
+            height: widget.size,
+            decoration: BoxDecoration(
+              color: _card,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: showGold ? _gold : _borderEmpty,
+                width: showGold ? 2 : 1,
+              ),
             ),
-          ),
-          alignment: Alignment.center,
-          child: TextField(
-            focusNode: ctrl.focusNodes[index],
-            controller: ctrl.textControllers[index],
-            onChanged: (value) {
-              if (value.length > 1) {
-                Future.microtask(() => ctrl.onPaste(value));
-                return;
-              }
-              if (value.isEmpty) {
-                ctrl.clearDigit(index);
-                return;
-              }
-              ctrl.setDigit(index, value);
-            },
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(1),
-            ],
-            textAlign: TextAlign.center,
-            cursorColor: Colors.transparent,
-            showCursor: false,
-            enableInteractiveSelection: false,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-              isDense: true,
+            alignment: Alignment.center,
+            child: TextField(
+              focusNode: ctrl.focusNodes[widget.index],
+              controller: ctrl.textControllers[widget.index],
+              scrollPadding: EdgeInsets.only(
+                top: 120,
+                bottom: bottomInset + 48,
+              ),
+              onChanged: (value) {
+                if (value.length > 1) {
+                  Future.microtask(() => ctrl.onPaste(value));
+                  return;
+                }
+                if (value.isEmpty) {
+                  ctrl.clearDigit(widget.index);
+                  return;
+                }
+                ctrl.setDigit(widget.index, value);
+              },
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(1),
+              ],
+              textAlign: TextAlign.center,
+              cursorColor: Colors.transparent,
+              showCursor: false,
+              enableInteractiveSelection: false,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: fontSize,
+                fontWeight: FontWeight.w600,
+              ),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                isDense: true,
+              ),
             ),
           ),
         );

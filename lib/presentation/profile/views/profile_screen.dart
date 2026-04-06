@@ -55,7 +55,7 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   _buildStatsRow(),
                   const SizedBox(height: 24),
-                  _buildAccountSection(),
+                  _AccountSection(),
                   const SizedBox(height: 24),
                   _buildSafetySettingsSection(),
                   const SizedBox(height: 24),
@@ -222,27 +222,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  List<SettingItem> _accountItems() {
-    final isChild = Get.isRegistered<DashboardController>()
-        ? Get.find<DashboardController>().isChild
-        : false;
-    return [
-      const SettingItem(icon: Icons.person_rounded, label: 'Personal Information'),
-      SettingItem(
-        icon: isChild ? Icons.child_care_rounded : Icons.person_rounded,
-        label: 'Profile Type',
-        badge: isChild ? 'Child' : 'Woman',
-        route: '/profile-type',
-      ),
-      const SettingItem(
-        icon: Icons.workspace_premium_rounded,
-        label: 'Premium Subscription',
-        badge: 'Active',
-      ),
-      const SettingItem(icon: Icons.shield_rounded, label: 'Privacy & Security'),
-    ];
-  }
-
   static const List<SettingItem> _safetyItems = [
     SettingItem(icon: Icons.phone_rounded, label: 'Emergency Contacts', badge: '5'),
     SettingItem(icon: Icons.location_on_rounded, label: 'Location Sharing', badge: 'On'),
@@ -254,13 +233,6 @@ class ProfileScreen extends StatelessWidget {
     SettingItem(icon: Icons.settings_rounded, label: 'App Settings'),
     SettingItem(icon: Icons.logout_rounded, label: 'Sign Out', danger: true),
   ];
-
-  Widget _buildAccountSection() {
-    return _SettingsSectionWidget(
-      title: 'Account',
-      items: _accountItems(),
-    );
-  }
 
   Widget _buildSafetySettingsSection() {
     return _SettingsSectionWidget(
@@ -320,6 +292,47 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Account settings; observes [DashboardController] so Profile Type matches the selection.
+class _AccountSection extends StatelessWidget {
+  const _AccountSection();
+
+  static List<SettingItem> _itemsFor({required bool isChild}) {
+    return [
+      const SettingItem(icon: Icons.person_rounded, label: 'Personal Information'),
+      SettingItem(
+        icon: isChild ? Icons.child_care_rounded : Icons.person_rounded,
+        label: 'Profile Type',
+        badge: isChild ? 'Child' : 'Woman',
+        route: '/profile-type',
+      ),
+      const SettingItem(
+        icon: Icons.workspace_premium_rounded,
+        label: 'Premium Subscription',
+        badge: 'Active',
+      ),
+      const SettingItem(icon: Icons.shield_rounded, label: 'Privacy & Security'),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!Get.isRegistered<DashboardController>()) {
+      return _SettingsSectionWidget(
+        title: 'Account',
+        items: _itemsFor(isChild: false),
+      );
+    }
+    return Obx(() {
+      final dash = Get.find<DashboardController>();
+      dash.profileType.value;
+      return _SettingsSectionWidget(
+        title: 'Account',
+        items: _itemsFor(isChild: dash.isChild),
+      );
+    });
   }
 }
 

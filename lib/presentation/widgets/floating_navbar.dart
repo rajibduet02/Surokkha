@@ -21,8 +21,7 @@ const double _navBorderRadius = 22;
 const double _activePillBorderRadius = 16;
 const double _iconContainerSize = 40;
 const double _iconSize = 24;
-// const double _iconLabelGap = 4;
-const double _iconLabelGap = 5;
+const double _iconLabelGap = 4;
 const int _animationMs = 250;
 
 /// Floating bottom nav bar. Matches React/Figma: glass container, gold active pill,
@@ -153,7 +152,7 @@ class _NavItem extends StatelessWidget {
             curve: Curves.easeOut,
             padding: EdgeInsets.symmetric(
               horizontal: isActive ? 10 : 8,
-              vertical: 6,
+              vertical: 4,
             ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(_activePillBorderRadius),
@@ -178,22 +177,26 @@ class _NavItem extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
+                SizedBox(
                   width: _iconContainerSize,
                   height: _iconContainerSize,
-                  alignment: Alignment.center,
-                  child: data.isSos
-    ? SvgPicture.asset(
-        'assets/icons/shield-alert.svg',
-        width: _iconSize,
-        height: _iconSize,
-        color: _iconColor,
-      )
-    : Icon(
-        data.icon,
-        size: _iconSize,
-        color: _iconColor,
-      ),
+                  child: Center(
+                    child: data.isSos
+                        ? SvgPicture.asset(
+                            'assets/icons/shield-alert.svg',
+                            width: _iconSize,
+                            height: _iconSize,
+                            colorFilter: ColorFilter.mode(
+                              _iconColor,
+                              BlendMode.srcIn,
+                            ),
+                          )
+                        : Icon(
+                            data.icon,
+                            size: _iconSize,
+                            color: _iconColor,
+                          ),
+                  ),
                 ),
                 SizedBox(height: _iconLabelGap),
                 AnimatedDefaultTextStyle(
@@ -202,10 +205,15 @@ class _NavItem extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
-                    // fontWeight: FontWeight.w500,
+                    height: 1.1,
                     color: _textColor,
                   ),
-                  child: Text(data.label),
+                  child: Text(
+                    data.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
             ),
