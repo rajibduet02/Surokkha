@@ -399,9 +399,12 @@ class _LoginContentState extends State<_LoginContent>
 
   Widget _buildContinueButton(AuthController controller) {
     final canContinue = controller.canContinue;
+    final loading = controller.isSigningIn.value;
+    final tapEnabled = canContinue && !loading;
+    final showPrimaryStyle = canContinue;
 
     return _ScaleTap(
-      onTap: canContinue ? controller.navigateToOtp : null,
+      onTap: tapEnabled ? () => controller.signInAndContinue() : null,
       child: SizedBox(
         width: double.infinity,
         child: AnimatedContainer(
@@ -411,7 +414,7 @@ class _LoginContentState extends State<_LoginContent>
           height: 56,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            gradient: canContinue
+            gradient: showPrimaryStyle
                 ? const LinearGradient(
                     colors: [
                       AppColors.goldPrimary,
@@ -419,9 +422,9 @@ class _LoginContentState extends State<_LoginContent>
                     ],
                   )
                 : null,
-            color: canContinue ? null : AppColors.secondary,
+            color: showPrimaryStyle ? null : AppColors.secondary,
             borderRadius: BorderRadius.circular(_buttonRadius),
-            boxShadow: canContinue
+            boxShadow: showPrimaryStyle
                 ? [
                     BoxShadow(
                       color: AppColors.goldPrimary.withValues(alpha: 0.3),
@@ -431,17 +434,28 @@ class _LoginContentState extends State<_LoginContent>
                   ]
                 : null,
           ),
-          child: Text(
-            'Continue',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: canContinue
-                  ? AppColors.primaryForeground
-                  : AppColors.mutedForeground,
-            ),
-          ),
+          child: loading
+              ? SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: showPrimaryStyle
+                        ? AppColors.primaryForeground
+                        : AppColors.mutedForeground,
+                  ),
+                )
+              : Text(
+                  'Continue',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: showPrimaryStyle
+                        ? AppColors.primaryForeground
+                        : AppColors.mutedForeground,
+                  ),
+                ),
         ),
       ),
     );

@@ -391,7 +391,7 @@ class _OtpContentState extends State<_OtpContent>
       final isVerifying = controller.isVerifying.value;
 
       return _ScaleTap(
-        onTap: isComplete && !isVerifying ? () {} : null,
+        onTap: isComplete && !isVerifying ? controller.submitVerification : null,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           width: double.infinity,
