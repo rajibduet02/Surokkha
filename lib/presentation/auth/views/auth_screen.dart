@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../app/theme/app_colors.dart';
-import '../../../app/theme/app_radius.dart';
 import '../controllers/auth_controller.dart';
 
 /// Login screen — matches React/Figma: phone input, Continue to OTP.
@@ -25,16 +24,27 @@ class _LoginContent extends StatefulWidget {
 
 class _LoginContentState extends State<_LoginContent>
     with TickerProviderStateMixin {
+  static const double _inputRadius = 20;
+  static const double _buttonRadius = 20;
+
   late AnimationController _topController;
   late AnimationController _formController;
   late AnimationController _bottomController;
   late AnimationController _logoGlowController;
   late TextEditingController _phoneController;
+  late FocusNode _phoneFocusNode;
+
+  void _onPhoneFocusChanged() {
+    if (!mounted) return;
+    Get.find<AuthController>().setFocused(_phoneFocusNode.hasFocus);
+  }
 
   @override
   void initState() {
     super.initState();
     _phoneController = TextEditingController();
+    _phoneFocusNode = FocusNode()..addListener(_onPhoneFocusChanged);
+
     _topController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -72,6 +82,8 @@ class _LoginContentState extends State<_LoginContent>
 
   @override
   void dispose() {
+    _phoneFocusNode.removeListener(_onPhoneFocusChanged);
+    _phoneFocusNode.dispose();
     _phoneController.dispose();
     _topController.stop();
     _topController.dispose();
@@ -87,55 +99,46 @@ class _LoginContentState extends State<_LoginContent>
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<AuthController>();
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final isSmall = MediaQuery.sizeOf(context).height < 700;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       resizeToAvoidBottomInset: true,
       body: RepaintBoundary(
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isSmall = MediaQuery.of(context).size.height < 700;
-              return SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
-                ),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 430),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(height: isSmall ? 16 : 24),
-                                    _buildTopSection(controller, isSmall),
-                                    SizedBox(height: isSmall ? 16 : 24),
-                                    _buildFormSection(controller),
-                                    SizedBox(height: isSmall ? 16 : 24),
-                                  ],
-                                ),
-                              ),
-                              _buildBottomSection(controller, isSmall),
-                            ],
-                          ),
+          child: CustomScrollView(
+            keyboardDismissBehavior:
+                ScrollViewKeyboardDismissBehavior.onDrag,
+            slivers: [
+              SliverPadding(
+                padding: EdgeInsets.only(bottom: bottomInset),
+                sliver: SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 430),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 48,
+                        ),
+                        child: Column(
+                          children: [
+                            SizedBox(height: isSmall ? 12 : 24),
+                            _buildTopSection(controller, isSmall),
+                            const Spacer(),
+                            _buildFormSection(controller),
+                            const Spacer(),
+                            _buildBottomSection(controller, isSmall),
+                          ],
                         ),
                       ),
                     ),
                   ),
                 ),
-              );
-            },
+              ),
+            ],
           ),
         ),
       ),
@@ -153,24 +156,23 @@ class _LoginContentState extends State<_LoginContent>
           child: Transform.translate(
             offset: Offset(0, dy),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildLogo(controller),
-                SizedBox(height: isSmall ? 12 : 16),
+                const SizedBox(height: 16),
                 Text(
                   'Welcome Back',
-                  softWrap: true,
-                  overflow: TextOverflow.visible,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
                     color: AppColors.foreground,
                   ),
                 ),
-                SizedBox(height: isSmall ? 6 : 8),
+                const SizedBox(height: 8),
                 Text(
                   'Sign in to continue protection',
-                  softWrap: true,
-                  overflow: TextOverflow.visible,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.mutedForeground,
@@ -189,22 +191,23 @@ class _LoginContentState extends State<_LoginContent>
       animation: _logoGlowController,
       builder: (context, _) {
         final glowScale = 1.0 + 0.05 * _logoGlowController.value;
-        final glowOpacity = 0.3 + 0.1 * _logoGlowController.value;
+        final glowOpacity = 0.30 + 0.10 * _logoGlowController.value;
         return Stack(
           alignment: Alignment.center,
           children: [
             Transform.scale(
               scale: glowScale,
               child: Container(
-                width: 80,
-                height: 80,
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.goldPrimary.withValues(alpha: glowOpacity),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.goldPrimary
-                          .withValues(alpha: glowOpacity),
+                      color: AppColors.goldPrimary.withValues(
+                        alpha: glowOpacity * 0.85,
+                      ),
                       blurRadius: 40,
                     ),
                   ],
@@ -243,24 +246,24 @@ class _LoginContentState extends State<_LoginContent>
     final isFocused = controller.isFocused.value;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             'Phone Number',
-            softWrap: true,
-            overflow: TextOverflow.visible,
             style: TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
             ),
           ),
         ),
-        Container(
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
           decoration: BoxDecoration(
             color: AppColors.backgroundSecondary,
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderRadius: BorderRadius.circular(_inputRadius),
             border: Border.all(
               color: isFocused ? AppColors.goldPrimary : AppColors.secondary,
               width: 2,
@@ -277,34 +280,36 @@ class _LoginContentState extends State<_LoginContent>
           ),
           child: Row(
             children: [
-              Flexible(
-                fit: FlexFit.loose,
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('🇧🇩', style: TextStyle(fontSize: 20)),
-                      const SizedBox(width: 6),
-                      Text(
-                        '+880',
-                        softWrap: true,
-                        overflow: TextOverflow.visible,
-                        style: TextStyle(
-                          color: AppColors.foreground,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'BD',
+                      style: TextStyle(
+                        color: AppColors.foreground,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 14,
-                        color: AppColors.mutedForeground,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '+880',
+                      style: TextStyle(
+                        color: AppColors.foreground,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 16,
+                      color: AppColors.mutedForeground,
+                    ),
+                  ],
                 ),
               ),
               Container(
@@ -315,13 +320,15 @@ class _LoginContentState extends State<_LoginContent>
               Expanded(
                 child: TextField(
                   controller: _phoneController,
-                  onChanged: controller.setPhoneNumber,
-                  onTap: () => controller.setFocused(true),
-                  onTapOutside: (_) => controller.setFocused(false),
+                  focusNode: _phoneFocusNode,
+                  onChanged: (v) {
+                    controller.setPhoneNumber(v);
+                  },
                   keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.done,
                   inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(11),
+                    _BangladeshPhoneDisplayFormatter(),
+                    LengthLimitingTextInputFormatter(13),
                   ],
                   style: TextStyle(
                     color: AppColors.foreground,
@@ -339,12 +346,12 @@ class _LoginContentState extends State<_LoginContent>
                     disabledBorder: InputBorder.none,
                     errorBorder: InputBorder.none,
                     focusedErrorBorder: InputBorder.none,
-                    filled: true,
-                    fillColor: Colors.transparent,
+                    filled: false,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 16,
+                      vertical: 14,
                     ),
+                    isDense: true,
                   ),
                 ),
               ),
@@ -355,8 +362,6 @@ class _LoginContentState extends State<_LoginContent>
           padding: const EdgeInsets.only(left: 4, top: 8),
           child: Text(
             "We'll send you a verification code",
-            softWrap: true,
-            overflow: TextOverflow.visible,
             style: TextStyle(
               fontSize: 12,
               color: AppColors.mutedForeground,
@@ -378,6 +383,7 @@ class _LoginContentState extends State<_LoginContent>
           child: Transform.translate(
             offset: Offset(0, dy),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Obx(() => _buildContinueButton(controller)),
                 SizedBox(height: isSmall ? 16 : 24),
@@ -400,8 +406,9 @@ class _LoginContentState extends State<_LoginContent>
         width: double.infinity,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          height: 56,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             gradient: canContinue
@@ -413,7 +420,7 @@ class _LoginContentState extends State<_LoginContent>
                   )
                 : null,
             color: canContinue ? null : AppColors.secondary,
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderRadius: BorderRadius.circular(_buttonRadius),
             boxShadow: canContinue
                 ? [
                     BoxShadow(
@@ -426,8 +433,6 @@ class _LoginContentState extends State<_LoginContent>
           ),
           child: Text(
             'Continue',
-            softWrap: true,
-            overflow: TextOverflow.visible,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
@@ -447,8 +452,6 @@ class _LoginContentState extends State<_LoginContent>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RichText(
         textAlign: TextAlign.center,
-        softWrap: true,
-        overflow: TextOverflow.visible,
         text: TextSpan(
           style: TextStyle(
             fontSize: 12,
@@ -468,6 +471,31 @@ class _LoginContentState extends State<_LoginContent>
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Formats up to 11 digits as `1712 345 678`; controller stores digits only via [AuthController.setPhoneNumber].
+class _BangladeshPhoneDisplayFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final truncated =
+        digits.length > 11 ? digits.substring(0, 11) : digits;
+
+    final buf = StringBuffer();
+    for (var i = 0; i < truncated.length; i++) {
+      if (i == 4 || i == 7) buf.write(' ');
+      buf.write(truncated[i]);
+    }
+    final text = buf.toString();
+
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
     );
   }
 }
@@ -494,7 +522,7 @@ class _ScaleTapState extends State<_ScaleTap>
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
-    _scale = Tween<double>(begin: 1, end: 0.98).animate(
+    _scale = Tween<double>(begin: 1, end: 0.95).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
