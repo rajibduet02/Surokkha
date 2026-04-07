@@ -1,33 +1,54 @@
+import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
-// Route paths (match React FloatingNav).
+// —— Routes (match React FloatingNav) ——
 const String routeDashboard = '/dashboard';
 const String routeSafeZones = '/safe-zones';
 const String routeEmergency = '/emergency';
 const String routeContacts = '/contacts';
 const String routeProfile = '/profile';
 
-// Design tokens (Figma/React).
+// —— Colors (Figma / React) ——
 const Color _gold = Color(0xFFD4AF37);
 const Color _goldLight = Color(0xFFF6D365);
 const Color _bgDark = Color(0xFF0A0A0F);
-const Color _inactive = Color(0xFF8A8A92);
-const Color _sosRed = Color(0xFFFF2D55);
+const Color _barFill = Color(0xFF1A1A22);
+const Color _barBorder = Color(0xFF2A2A32);
+const Color _inactiveIcon = Color(0xFF8A8A92);
+const Color _inactiveLabel = Color(0xFF8A8A92);
+const Color _sosRed = Color(0xFFEF4444);
 
-const double _navHeight = 88;
-const double _navBorderRadius = 22;
-const double _activePillBorderRadius = 16;
-const double _iconContainerSize = 40;
-const double _iconSize = 24;
-const double _iconLabelGap = 4;
-const int _animationMs = 250;
+// —— Layout ——
+const double _kMaxBarWidth = 382;
+const double _kHorizontalInset = 24; // screen width − 48 max content gutter
+const double _kBottomPadding = 22;
+const double _kBarBorderRadius = 24;
+const double _kPillBorderRadius = 16;
+const double _kPillHorizontalInset = 4;
+const double _kBarInnerPaddingV = 10;
+const double _kBarInnerPaddingH = 6;
+const double _kIconContainerSize = 40;
+const double _kIconContainerRadius = 12;
+const double _kIconSize = 24;
+const double _kIconLabelGap = 4;
+/// Room for one line of 10px text (incl. web font metrics) + item vertical padding (2+2).
+const double _kLabelSlotHeight = 15;
+const double _kItemPaddingV = 4;
+const int _kAnimationMs = 300;
+const double _kBlurSigma = 16;
+const double _kBarFillOpacity = 0.95;
+const double _kShadowBlur = 20;
+const double _kPillFillOpacity = 0.1;
+const double _kPillBorderOpacity = 0.3;
+const double _kSosGlowBlur = 14;
+const double _kSosGlowSpread = 0;
+const double _kSosGlowOpacity = 0.35;
 
-/// Floating bottom nav bar. Matches React/Figma: glass container, gold active pill,
-/// red inactive SOS, equal-width tabs with centered pill, 250ms animation.
-///
-/// Pass [currentRoute] so the correct tab is highlighted. If null, uses [Get.currentRoute].
+/// Floating bottom navigation: glass bar, animated active pill, GetX routing.
 class FloatingNavBar extends StatelessWidget {
   const FloatingNavBar({super.key, this.currentRoute});
 
@@ -35,8 +56,25 @@ class FloatingNavBar extends StatelessWidget {
 
   String get _activeRoute => currentRoute ?? Get.currentRoute;
 
+  int get _activeIndex {
+    final r = _activeRoute;
+    final items = _NavItemData.items;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].route == r) return i;
+    }
+    return 0;
+  }
+
+  void _navigate(String route) {
+    if (Get.currentRoute == route) return;
+    Get.offNamed(route);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final keyboardBottom = MediaQuery.viewInsetsOf(context).bottom;
+    final bottomPad = _kBottomPadding + keyboardBottom;
+
     return Positioned(
       left: 0,
       right: 0,
@@ -44,75 +82,186 @@ class FloatingNavBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          child: Container(
-            height: _navHeight,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(_navBorderRadius),
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF1C1C24),
-                  Color(0xFF14141B),
-                ],
-              ),
-              border: Border.all(
-                color: const Color(0x22FFFFFF),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black54,
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(child: Center(child: _NavItem(data: _NavItemData.items[0], isActive: _activeRoute == _NavItemData.items[0].route, onTap: () => _navigate(_NavItemData.items[0].route)))),
-                Expanded(child: Center(child: _NavItem(data: _NavItemData.items[1], isActive: _activeRoute == _NavItemData.items[1].route, onTap: () => _navigate(_NavItemData.items[1].route)))),
-                Expanded(child: Center(child: _NavItem(data: _NavItemData.items[2], isActive: _activeRoute == _NavItemData.items[2].route, onTap: () => _navigate(_NavItemData.items[2].route)))),
-                Expanded(child: Center(child: _NavItem(data: _NavItemData.items[3], isActive: _activeRoute == _NavItemData.items[3].route, onTap: () => _navigate(_NavItemData.items[3].route)))),
-                Expanded(child: Center(child: _NavItem(data: _NavItemData.items[4], isActive: _activeRoute == _NavItemData.items[4].route, onTap: () => _navigate(_NavItemData.items[4].route)))),
-              ],
+          padding: EdgeInsets.fromLTRB(
+            _kHorizontalInset,
+            0,
+            _kHorizontalInset,
+            bottomPad,
+          ),
+          child: Center(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final maxW = constraints.maxWidth;
+                final barWidth = math.min(maxW, _kMaxBarWidth);
+                final innerW = barWidth - 2 * _kBarInnerPaddingH;
+                final segmentW = innerW / _NavItemData.items.length;
+                final pillW = segmentW - 2 * _kPillHorizontalInset;
+                final pillLeft =
+                    _activeIndex * segmentW + _kPillHorizontalInset;
+
+                return _GlassNavBar(
+                  width: barWidth,
+                  activeIndex: _activeIndex,
+                  pillLeft: pillLeft,
+                  pillWidth: pillW,
+                  onItemTap: _navigate,
+                );
+              },
             ),
           ),
         ),
       ),
     );
   }
+}
 
-  void _navigate(String route) {
-    if (Get.currentRoute == route) return;
-    Get.offNamed(route);
+class _GlassNavBar extends StatelessWidget {
+  const _GlassNavBar({
+    required this.width,
+    required this.activeIndex,
+    required this.pillLeft,
+    required this.pillWidth,
+    required this.onItemTap,
+  });
+
+  final double width;
+  final int activeIndex;
+  final double pillLeft;
+  final double pillWidth;
+  final void Function(String route) onItemTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        width: width,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(_kBarBorderRadius),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: _kShadowBlur,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(_kBarBorderRadius),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: _kBlurSigma,
+              sigmaY: _kBlurSigma,
+            ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: _barFill.withValues(alpha: _kBarFillOpacity),
+                borderRadius: BorderRadius.circular(_kBarBorderRadius),
+                border: Border.all(color: _barBorder, width: 1),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: _kBarInnerPaddingH,
+                  vertical: _kBarInnerPaddingV,
+                ),
+                child: SizedBox(
+                  height: _navContentHeight,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
+                    children: [
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: _kAnimationMs),
+                        curve: Curves.easeOut,
+                        left: pillLeft,
+                        top: 0,
+                        bottom: 0,
+                        width: pillWidth,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: _gold.withValues(alpha: _kPillFillOpacity),
+                            borderRadius:
+                                BorderRadius.circular(_kPillBorderRadius),
+                            border: Border.all(
+                              color: _gold.withValues(
+                                alpha: _kPillBorderOpacity,
+                              ),
+                              width: 1,
+                            ),
+                          ),
+                          child: const SizedBox.expand(),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          for (var i = 0;
+                              i < _NavItemData.items.length;
+                              i++) ...[
+                            Expanded(
+                              child: _NavItem(
+                                data: _NavItemData.items[i],
+                                isActive: i == activeIndex,
+                                onTap: () => onItemTap(_NavItemData.items[i].route),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
+/// Stack height = icon + gap + label slot + InkWell vertical padding.
+double get _navContentHeight =>
+    _kIconContainerSize +
+    _kIconLabelGap +
+    _kLabelSlotHeight +
+    _kItemPaddingV;
+
 class _NavItemData {
-const _NavItemData({
-  required this.route,
-  required this.label,
-  this.icon,
-  this.svgPath,
-  this.isSos = false,
-});
+  const _NavItemData({
+    required this.route,
+    required this.label,
+    this.icon,
+    this.isSos = false,
+  });
+
   final String route;
   final String label;
   final bool isSos;
   final IconData? icon;
-  final String? svgPath;
 
   static const List<_NavItemData> items = [
     _NavItemData(route: routeDashboard, label: 'Home', icon: Icons.home_rounded),
-    _NavItemData(route: routeSafeZones, label: 'Zones', icon: Icons.location_on_rounded),
-    _NavItemData(route: routeEmergency, label: 'SOS', icon: Icons.emergency_rounded, isSos: true),
-    _NavItemData(route: routeContacts, label: 'Contacts', icon: Icons.people_rounded),
-    _NavItemData(route: routeProfile, label: 'Profile', icon: Icons.person_rounded),
+    _NavItemData(
+      route: routeSafeZones,
+      label: 'Zones',
+      icon: Icons.location_on_rounded,
+    ),
+    _NavItemData(
+      route: routeEmergency,
+      label: 'SOS',
+      icon: Icons.emergency_rounded,
+      isSos: true,
+    ),
+    _NavItemData(
+      route: routeContacts,
+      label: 'Contacts',
+      icon: Icons.people_rounded,
+    ),
+    _NavItemData(
+      route: routeProfile,
+      label: 'Profile',
+      icon: Icons.person_rounded,
+    ),
   ];
 }
 
@@ -130,62 +279,63 @@ class _NavItem extends StatelessWidget {
   Color get _iconColor {
     if (isActive) return _bgDark;
     if (data.isSos) return _sosRed;
-    return _inactive;
+    return _inactiveIcon;
   }
 
-  Color get _textColor {
-    if (isActive) return _bgDark;
+  Color get _labelColor {
+    if (isActive) return _gold;
     if (data.isSos) return _sosRed;
-    return _inactive;
+    return _inactiveLabel;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return _NavItemTapScale(
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(_activePillBorderRadius),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: _animationMs),
-            curve: Curves.easeOut,
-            padding: EdgeInsets.symmetric(
-              horizontal: isActive ? 10 : 8,
-              vertical: 4,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(_activePillBorderRadius),
-              gradient: isActive
-                  ? const LinearGradient(
-                      colors: [_gold, _goldLight],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null,
-              boxShadow: isActive
-                  ? [
-                      BoxShadow(
-                        color: const Color(0x33D4AF37),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : null,
-            ),
+          splashColor: _gold.withValues(alpha: 0.12),
+          highlightColor: Colors.transparent,
+          borderRadius: BorderRadius.circular(_kPillBorderRadius),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  width: _iconContainerSize,
-                  height: _iconContainerSize,
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: _kAnimationMs),
+                  curve: Curves.easeOut,
+                  width: _kIconContainerSize,
+                  height: _kIconContainerSize,
+                  decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.circular(_kIconContainerRadius),
+                    gradient: isActive
+                        ? const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [_gold, _goldLight],
+                          )
+                        : null,
+                    color: isActive ? null : Colors.transparent,
+                    boxShadow: data.isSos
+                        ? [
+                            BoxShadow(
+                              color: _sosRed.withValues(alpha: _kSosGlowOpacity),
+                              blurRadius: _kSosGlowBlur,
+                              spreadRadius: _kSosGlowSpread,
+                            ),
+                          ]
+                        : null,
+                  ),
                   child: Center(
                     child: data.isSos
                         ? SvgPicture.asset(
                             'assets/icons/shield-alert.svg',
-                            width: _iconSize,
-                            height: _iconSize,
+                            width: _kIconSize,
+                            height: _kIconSize,
                             colorFilter: ColorFilter.mode(
                               _iconColor,
                               BlendMode.srcIn,
@@ -193,20 +343,20 @@ class _NavItem extends StatelessWidget {
                           )
                         : Icon(
                             data.icon,
-                            size: _iconSize,
+                            size: _kIconSize,
                             color: _iconColor,
                           ),
                   ),
                 ),
-                SizedBox(height: _iconLabelGap),
+                SizedBox(height: _kIconLabelGap),
                 AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: _animationMs),
+                  duration: const Duration(milliseconds: _kAnimationMs),
                   curve: Curves.easeOut,
                   style: TextStyle(
                     fontSize: 10,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w500,
                     height: 1.1,
-                    color: _textColor,
+                    color: _labelColor,
                   ),
                   child: Text(
                     data.label,
@@ -219,6 +369,56 @@ class _NavItem extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Scale to 0.95 on press; does not handle navigation (child [InkWell] does).
+class _NavItemTapScale extends StatefulWidget {
+  const _NavItemTapScale({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_NavItemTapScale> createState() => _NavItemTapScaleState();
+}
+
+class _NavItemTapScaleState extends State<_NavItemTapScale>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _c;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+    );
+    _scale = Tween<double>(begin: 1, end: 0.95).animate(
+      CurvedAnimation(parent: _c, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) => _c.forward(),
+      onPointerUp: (_) => _c.reverse(),
+      onPointerCancel: (_) => _c.reverse(),
+      child: AnimatedBuilder(
+        animation: _scale,
+        builder: (context, child) =>
+            Transform.scale(scale: _scale.value, child: child),
+        child: widget.child,
       ),
     );
   }

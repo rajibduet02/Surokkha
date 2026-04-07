@@ -303,16 +303,19 @@ class _PremiumHeroCard extends StatelessWidget {
               border: Border.all(color: _gold.withValues(alpha: 0.3)),
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.schedule_rounded, color: _gold, size: 18),
                 const SizedBox(width: 8),
-                Text(
-                  '15-Day Free Trial • 12 Days Left',
-                  style: TextStyle(
-                    color: _gold,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    '15-Day Free Trial • 12 Days Left',
+                    style: TextStyle(
+                      color: _gold,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
