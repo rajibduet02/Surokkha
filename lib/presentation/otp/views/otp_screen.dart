@@ -119,7 +119,7 @@ class _OtpContentState extends State<_OtpContent>
         const SizedBox(height: 32),
         SizedBox(
           width: double.infinity,
-          child: _buildLogoAndTitle(),
+          child: _buildLogoAndTitle(controller),
         ),
       ],
     );
@@ -146,7 +146,7 @@ class _OtpContentState extends State<_OtpContent>
     );
   }
 
-  Widget _buildLogoAndTitle() {
+  Widget _buildLogoAndTitle(OtpController controller) {
     return AnimatedBuilder(
       animation: _logoGlowController,
       builder: (context, _) {
@@ -196,7 +196,7 @@ class _OtpContentState extends State<_OtpContent>
             ),
             const SizedBox(height: 6),
             Text(
-              '+880 1712 345 678',
+              controller.phoneDisplayLine,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 15,

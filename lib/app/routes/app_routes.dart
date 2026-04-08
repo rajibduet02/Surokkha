@@ -22,6 +22,7 @@ abstract class AppRoutes {
   static const featureA = _Paths.featureA;
   static const featureB = _Paths.featureB;
   static const settings = _Paths.settings;
+  static const notifications = _Paths.notifications;
 }
 
 abstract class _Paths {
@@ -45,4 +46,5 @@ abstract class _Paths {
   static const featureA = '/feature-a';
   static const featureB = '/feature-b';
   static const settings = '/settings';
+  static const notifications = '/notifications';
 }

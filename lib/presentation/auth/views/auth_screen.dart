@@ -36,6 +36,7 @@ class _LoginContentState extends State<_LoginContent>
 
   void _onPhoneFocusChanged() {
     if (!mounted) return;
+    if (!Get.isRegistered<AuthController>()) return;
     Get.find<AuthController>().setFocused(_phoneFocusNode.hasFocus);
   }
 
@@ -74,6 +75,8 @@ class _LoginContentState extends State<_LoginContent>
     )..repeat(reverse: true);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!Get.isRegistered<AuthController>()) return;
       Get.find<AuthController>().setOnBeforeNavigate(() {
         _logoGlowController.stop();
       });
@@ -98,6 +101,9 @@ class _LoginContentState extends State<_LoginContent>
 
   @override
   Widget build(BuildContext context) {
+    if (!Get.isRegistered<AuthController>()) {
+      return const Scaffold(body: SizedBox.shrink());
+    }
     final controller = Get.find<AuthController>();
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     final isSmall = MediaQuery.sizeOf(context).height < 700;

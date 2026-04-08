@@ -1,6 +1,7 @@
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:surokkha_app/presentation/notification/controllers/notification_controller.dart';
 
 import '../../../../presentation/widgets/floating_navbar.dart';
 import '../controllers/dashboard_controller.dart';
@@ -210,7 +211,7 @@ class _SettingsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Get.toNamed('/profile'),
+      onTap: () => Get.toNamed('/notifications'),
       child: Container(
         width: 40,
         height: 40,
@@ -220,7 +221,41 @@ class _SettingsButton extends StatelessWidget {
           border: Border.all(color: _cardBorder),
         ),
         alignment: Alignment.center,
-        child: Icon(Icons.settings_rounded, size: 24, color: _muted),
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            const Icon(Icons.notifications_rounded, size: 24, color: _muted),
+            Positioned(
+              right: -2,
+              top: -2,
+              child: Obx(() {
+                if (!Get.isRegistered<NotificationController>()) {
+                  return const SizedBox.shrink();
+                }
+                final count = Get.find<NotificationController>().unreadCount;
+                if (count == 0) return const SizedBox.shrink();
+                return Container(
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    count > 9 ? '9+' : '$count',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ],
+        ),
       ),
     );
   }

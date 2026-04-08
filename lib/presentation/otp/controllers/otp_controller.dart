@@ -28,6 +28,22 @@ class OtpController extends GetxController {
 
   bool get isComplete => otp.every((d) => d.isNotEmpty);
 
+  /// Same spacing as auth phone field (`1712 345 678`), prefixed with `+880 `.
+  String get phoneDisplayLine {
+    final raw = _phoneNo;
+    if (raw == null || raw.isEmpty) return '+880 —';
+    final digits = raw.replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) return '+880 —';
+    final truncated =
+        digits.length > 11 ? digits.substring(0, 11) : digits;
+    final buf = StringBuffer();
+    for (var i = 0; i < truncated.length; i++) {
+      if (i == 4 || i == 7) buf.write(' ');
+      buf.write(truncated[i]);
+    }
+    return '+880 ${buf.toString()}';
+  }
+
   @override
   void onInit() {
     super.onInit();

@@ -18,6 +18,7 @@ import '../../presentation/safe_zones/views/safe_zones_screen.dart';
 import '../../presentation/profile/views/profile_screen.dart';
 import '../../presentation/premium/views/premium_screen.dart';
 import '../../presentation/settings/views/settings_screen.dart';
+import '../../presentation/notification/views/notification_screen.dart';
 import '../../presentation/onboarding/views/onboarding1_screen.dart';
 import '../../presentation/onboarding/views/onboarding2_screen.dart';
 import '../../presentation/onboarding/views/onboarding3_screen.dart';
@@ -93,6 +94,10 @@ abstract class AppPages {
       name: _Paths.settings,
       page: () => const SettingsScreen(),
       binding: SettingsBinding(),
+    ),
+    GetPage(
+      name: _Paths.notifications,
+      page: () => const NotificationScreen(),
     ),
   ];
 }
