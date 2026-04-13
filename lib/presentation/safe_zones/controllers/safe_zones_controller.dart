@@ -142,4 +142,30 @@ class SafeZonesController extends GetxController {
     zones[i] = zones[i].copyWith(exitAlert: !zones[i].exitAlert);
     zones.refresh();
   }
+
+  void addZone({
+    required String name,
+    required String address,
+    required String radius,
+    required bool entryAlert,
+    required bool exitAlert,
+  }) {
+    final newZone = SafeZone(
+      id: DateTime.now().millisecondsSinceEpoch,
+      name: name,
+      address: address,
+      radius: radius,
+      entryAlert: entryAlert,
+      exitAlert: exitAlert,
+      active: true,
+    );
+
+    zones.insert(0, newZone);
+    zones.refresh();
+  }
+
+  void deleteZone(int id) {
+    zones.removeWhere((z) => z.id == id);
+    zones.refresh();
+  }
 }

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../widgets/floating_navbar.dart';
 import '../controllers/safe_contacts_controller.dart';
 import '../../../data/models/contact_item.dart';
+import 'add_contact_screen.dart';
 
 // Design tokens (match React)
 const Color _bg = Color(0xFF0A0A0F);
@@ -82,19 +83,22 @@ class SafeContactsScreen extends GetView<SafeContactsController> {
           ),
         ),
         const SizedBox(width: 12),
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [_gold, _goldLight],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        GestureDetector(
+          onTap: () => Get.to(() => const AddContactScreen()),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [_gold, _goldLight],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
             ),
-            borderRadius: BorderRadius.circular(12),
+            alignment: Alignment.center,
+            child: Icon(Icons.add_rounded, color: _bgDark, size: 22),
           ),
-          alignment: Alignment.center,
-          child: Icon(Icons.add_rounded, color: _bgDark, size: 22),
         ),
       ],
     );
@@ -147,9 +151,8 @@ class SafeContactsScreen extends GetView<SafeContactsController> {
   }
 
   Widget _buildContactsSection() {
-    return GetBuilder<SafeContactsController>(
-      builder: (c) {
-        final contacts = c.contacts;
+    return Obx(() {
+        final contacts = controller.contacts;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -180,13 +183,12 @@ class SafeContactsScreen extends GetView<SafeContactsController> {
                 )),
           ],
         );
-      },
-    );
+    });
   }
 
   Widget _buildAddContactButton() {
     return GestureDetector(
-      onTap: () {},
+      onTap: () => Get.to(() => const AddContactScreen()),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
@@ -306,6 +308,75 @@ class _ContactCard extends StatelessWidget {
 
   final ContactItem contact;
 
+  void _showContactMenu(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A22),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.delete_rounded, color: Colors.red),
+                  title: const Text(
+                    'Delete Contact',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _confirmDelete(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A22),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text(
+          'Delete Contact',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Are you sure you want to delete ${contact.name}?',
+          style: const TextStyle(color: Color(0xFF8A8A92)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              Get.find<SafeContactsController>().deleteContact(contact);
+            },
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -352,7 +423,7 @@ class _ContactCard extends StatelessWidget {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () => _showContactMenu(context),
                       child: Container(
                         width: 32,
                         height: 32,

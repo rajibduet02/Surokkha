@@ -1,5 +1,6 @@
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../widgets/floating_navbar.dart';
@@ -140,7 +141,7 @@ class SafeZonesScreen extends GetView<SafeZonesController> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: () => Get.toNamed('/add-safe-zone'),
         borderRadius: BorderRadius.circular(20),
         child: Container(
           height: 60,
@@ -213,12 +214,24 @@ class SafeZonesScreen extends GetView<SafeZonesController> {
             ),
           ),
           const SizedBox(height: 16),
-          ...controller.zones.map((zone) => _ZoneCard(
-                zone: zone,
-                onToggleZone: controller.toggleZone,
-                onToggleEntry: controller.toggleEntryAlert,
-                onToggleExit: controller.toggleExitAlert,
-              )),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: Column(
+              key: ValueKey(controller.zones.length),
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: controller.zones
+                  .map(
+                    (zone) => _ZoneCard(
+                      zone: zone,
+                      onToggleZone: controller.toggleZone,
+                      onToggleEntry: controller.toggleEntryAlert,
+                      onToggleExit: controller.toggleExitAlert,
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
         ],
       );
     });
@@ -238,11 +251,96 @@ class _ZoneCard extends StatelessWidget {
   final void Function(int id) onToggleEntry;
   final void Function(int id) onToggleExit;
 
+  void _showDeleteDialog(BuildContext context) {
+    Get.dialog(
+      Dialog(
+        backgroundColor: const Color(0xFF1A1A22),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Delete Safe Zone',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "Are you sure you want to delete '${zone.name}'?",
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFF8A8A92),
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Get.back(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2A2A32),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Get.find<SafeZonesController>().deleteZone(zone.id);
+                        Get.back();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: ClipRRect(
+      child: GestureDetector(
+        onTap: () {},
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+          _showDeleteDialog(context);
+        },
+        child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -407,6 +505,7 @@ class _ZoneCard extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }

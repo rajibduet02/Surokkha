@@ -14,6 +14,7 @@ import '../../presentation/otp/views/otp_screen.dart';
 import '../../presentation/profile_type/views/profile_type_screen.dart';
 import '../../presentation/emergency/views/emergency_screen.dart';
 import '../../presentation/contacts/views/safe_contacts_screen.dart';
+import '../../presentation/safe_zones/views/add_safe_zone_screen.dart';
 import '../../presentation/safe_zones/views/safe_zones_screen.dart';
 import '../../presentation/profile/views/profile_screen.dart';
 import '../../presentation/premium/views/premium_screen.dart';
@@ -70,6 +71,11 @@ abstract class AppPages {
     GetPage(
       name: _Paths.safeZones,
       page: () => const SafeZonesScreen(),
+      binding: SafeZonesBinding(),
+    ),
+    GetPage(
+      name: '/add-safe-zone',
+      page: () => const AddSafeZoneScreen(),
       binding: SafeZonesBinding(),
     ),
     GetPage(

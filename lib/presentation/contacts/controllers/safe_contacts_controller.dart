@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../dashboard/controllers/dashboard_controller.dart';
@@ -5,14 +6,7 @@ import '../../../data/models/contact_item.dart';
 
 /// Provides contact list based on profile type (woman vs child). Matches React ContactsScreen.
 class SafeContactsController extends GetxController {
-  List<ContactItem> get contacts {
-    try {
-      final dashboard = Get.find<DashboardController>();
-      return dashboard.isChild ? _contactsChild : _contactsWoman;
-    } catch (_) {
-      return _contactsWoman;
-    }
-  }
+  final RxList<ContactItem> contacts = <ContactItem>[].obs;
 
   static const List<ContactItem> _contactsWoman = [
     ContactItem(
@@ -99,4 +93,45 @@ class SafeContactsController extends GetxController {
       verified: true,
     ),
   ];
+
+  @override
+  void onInit() {
+    super.onInit();
+    try {
+      final dashboard = Get.find<DashboardController>();
+      contacts.assignAll(
+        dashboard.isChild ? _contactsChild : _contactsWoman,
+      );
+    } catch (_) {
+      contacts.assignAll(_contactsWoman);
+    }
+  }
+
+  void addContact(ContactItem contact) {
+    if (contacts.length >= 10) {
+      Get.snackbar(
+        'Limit reached',
+        'Maximum 10 contacts allowed',
+        backgroundColor: const Color(0xFF1A1A22),
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    contacts.add(contact);
+    contacts.refresh();
+  }
+
+  void deleteContact(ContactItem contact) {
+    contacts.remove(contact);
+    contacts.refresh();
+    Get.snackbar(
+      'Contact Removed',
+      '${contact.name} has been deleted',
+      backgroundColor: const Color(0xFF1A1A22),
+      colorText: Colors.white,
+      snackPosition: SnackPosition.BOTTOM,
+      margin: const EdgeInsets.all(16),
+    );
+  }
 }
