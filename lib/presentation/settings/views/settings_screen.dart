@@ -1,41 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controllers/settings_controller.dart';
+import '../../../app/routes/app_pages.dart';
+import '../../dashboard/controllers/dashboard_controller.dart';
 import '../../widgets/floating_navbar.dart';
-
-// Design tokens (match React SettingsScreen)
-const Color _bg = Color(0xFF0A0A0F);
-const Color _card = Color(0xFF1A1A22);
-const Color _cardBorder = Color(0xFF2A2A32);
-const Color _gold = Color(0xFFD4AF37);
-const Color _goldLight = Color(0xFFF6D365);
-const Color _green = Color(0xFF10B981);
-const Color _muted = Color(0xFF8A8A92);
-const Color _bgDark = Color(0xFF0A0A0F);
-
-/// Single setting row item. Matches React settingsSections item shape.
-class SettingItem {
-  const SettingItem({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    this.badge,
-    this.route,
-    this.action,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String? badge;
-  final String? route;
-  /// e.g. 'language' for language selector row
-  final String? action;
-}
+import '../../widgets/profile_settings_components.dart';
+import '../controllers/settings_controller.dart';
 
 class SettingsScreen extends GetView<SettingsController> {
   const SettingsScreen({super.key});
+
+  static const Color _bg = AppPremiumTokens.bg;
 
   @override
   Widget build(BuildContext context) {
@@ -44,28 +19,41 @@ class SettingsScreen extends GetView<SettingsController> {
       body: Stack(
         children: [
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 24),
-                  _buildHeader(),
-                  const SizedBox(height: 24),
-                  const _UserCardWidget(),
-                  const SizedBox(height: 24),
-                  _buildAccountSection(),
-                  const SizedBox(height: 24),
-                  _buildEmergencySettingsSection(),
-                  const SizedBox(height: 24),
-                  _buildAppSettingsSection(),
-                  const SizedBox(height: 24),
-                  _buildLegalSection(),
-                  const SizedBox(height: 24),
-                  _buildFooter(),
-                  const SizedBox(height: 120),
-                ],
-              ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: MediaQuery.sizeOf(context).height < 640 ? 16 : 24,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildHeader(context),
+                        const SizedBox(height: 24),
+                        _buildAccountSection(context),
+                        const SizedBox(height: 24),
+                        _buildSafetySection(),
+                        const SizedBox(height: 24),
+                        _buildNotificationSection(),
+                        const SizedBox(height: 24),
+                        _buildAppSection(),
+                        const SizedBox(height: 24),
+                        _buildSupportSection(),
+                        const SizedBox(height: 24),
+                        _buildLegalSection(),
+                        const SizedBox(height: 32),
+                        _buildSignOutButton(context),
+                        const SizedBox(height: 24),
+                        _buildFooter(),
+                        const SizedBox(height: 120),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           const FloatingNavBar(),
@@ -74,22 +62,28 @@ class SettingsScreen extends GetView<SettingsController> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         GestureDetector(
-          onTap: () => Get.offNamed('/dashboard'),
+          onTap: () {
+            if (Navigator.of(context).canPop()) {
+              Get.back();
+            } else {
+              Get.offNamed('/dashboard');
+            }
+          },
           child: Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: _card,
+              color: AppPremiumTokens.card,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _gold.withValues(alpha: 0.2)),
+              border: Border.all(color: AppPremiumTokens.gold.withValues(alpha: 0.2)),
             ),
             alignment: Alignment.center,
-            child: Icon(Icons.arrow_back_rounded, color: _gold, size: 22),
+            child: const Icon(Icons.arrow_back_rounded, color: AppPremiumTokens.gold, size: 22),
           ),
         ),
         const Text(
@@ -105,487 +99,261 @@ class SettingsScreen extends GetView<SettingsController> {
     );
   }
 
-  static const List<SettingItem> _accountItems = [
-    SettingItem(
-      icon: Icons.person_rounded,
-      title: 'Personal Information',
-      subtitle: 'Name, phone, email',
-      route: '/profile',
-    ),
-    SettingItem(
-      icon: Icons.workspace_premium_rounded,
-      title: 'Subscription Status',
-      subtitle: 'Premium • 12 days trial left',
-      badge: 'Premium',
-      route: '/premium',
-    ),
-  ];
-
-  static const List<SettingItem> _emergencyItems = [
-    SettingItem(
-      icon: Icons.phone_rounded,
-      title: 'Emergency Contacts',
-      subtitle: '5 contacts added',
-      route: '/contacts',
-    ),
-    SettingItem(
-      icon: Icons.location_on_rounded,
-      title: 'Safe Zones',
-      subtitle: '3 zones configured',
-      route: '/safe-zones',
-    ),
-    SettingItem(
-      icon: Icons.notifications_rounded,
-      title: 'Alert Preferences',
-      subtitle: 'Customize notifications',
-    ),
-  ];
-
-  static const List<SettingItem> _appItems = [
-    SettingItem(
-      icon: Icons.language_rounded,
-      title: 'Language',
-      subtitle: 'English',
-      action: 'language',
-    ),
-    SettingItem(
-      icon: Icons.shield_rounded,
-      title: 'Privacy & Security',
-      subtitle: 'Data protection settings',
-    ),
-  ];
-
-  static const List<SettingItem> _legalItems = [
-    SettingItem(
-      icon: Icons.description_rounded,
-      title: 'Terms of Service',
-      subtitle: 'Read our terms',
-    ),
-    SettingItem(
-      icon: Icons.lock_rounded,
-      title: 'Privacy Policy',
-      subtitle: 'How we protect your data',
-    ),
-  ];
-
-  Widget _buildAccountSection() {
-    return _SettingsSectionWidget(
-      title: 'Account',
-      items: _accountItems,
-      controller: controller,
+  Widget _buildAccountSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SettingsSectionTitle(title: 'Account'),
+        const SizedBox(height: 12),
+        SettingsGroupedCard(
+          children: [
+            SettingsNavTile(
+              icon: Icons.person_rounded,
+              title: 'Personal Information',
+              subtitle: 'Name, phone, email',
+              onTap: () => Get.toNamed('/profile'),
+            ),
+            if (Get.isRegistered<DashboardController>())
+              Obx(() {
+                final dash = Get.find<DashboardController>();
+                dash.profileType.value;
+                return SettingsNavTile(
+                  icon: dash.isChild ? Icons.child_care_rounded : Icons.person_outline_rounded,
+                  title: 'Profile Type',
+                  subtitle: dash.isChild ? 'Child profile' : 'Woman profile',
+                  badge: dash.isChild ? 'Child' : 'Woman',
+                  onTap: () => Get.toNamed('/profile-type'),
+                );
+              })
+            else
+              SettingsNavTile(
+                icon: Icons.person_outline_rounded,
+                title: 'Profile Type',
+                subtitle: 'Woman profile',
+                badge: 'Woman',
+                onTap: () => Get.toNamed('/profile-type'),
+              ),
+            SettingsNavTile(
+              icon: Icons.workspace_premium_rounded,
+              title: 'Subscription',
+              subtitle: 'Manage your plan',
+              badge: 'Premium',
+              badgeGradient: true,
+              onTap: () => Get.toNamed('/premium'),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildEmergencySettingsSection() {
-    return _SettingsSectionWidget(
-      title: 'Emergency Settings',
-      items: _emergencyItems,
-      controller: controller,
+  Widget _buildSafetySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SettingsSectionTitle(title: 'Safety settings'),
+        const SizedBox(height: 12),
+        Obx(
+          () => SettingsGroupedCard(
+            children: [
+              SettingsNavTile(
+                icon: Icons.phone_rounded,
+                title: 'Emergency Contacts',
+                subtitle: 'Trusted contacts for SOS',
+                onTap: () => Get.toNamed('/contacts'),
+              ),
+              SettingsNavTile(
+                icon: Icons.map_rounded,
+                title: 'Safe Zones',
+                subtitle: 'Geofenced safe areas',
+                onTap: () => Get.toNamed('/safe-zones'),
+              ),
+              AppToggleTile(
+                icon: Icons.location_on_rounded,
+                title: 'Location Sharing',
+                subtitle: 'Share live location with guardians',
+                value: controller.locationSharing.value,
+                onChanged: (v) => controller.locationSharing.value = v,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildAppSettingsSection() {
-    return _SettingsSectionWidget(
-      title: 'App Settings',
-      items: _appItems,
-      controller: controller,
+  Widget _buildNotificationSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SettingsSectionTitle(title: 'Notifications'),
+        const SizedBox(height: 12),
+        Obx(
+          () => SettingsGroupedCard(
+            children: [
+              AppToggleTile(
+                icon: Icons.notifications_rounded,
+                title: 'Push Notifications',
+                subtitle: 'In-app alerts',
+                value: controller.pushNotifications.value,
+                onChanged: (v) => controller.pushNotifications.value = v,
+              ),
+              AppToggleTile(
+                icon: Icons.sms_rounded,
+                title: 'SMS Alerts',
+                subtitle: 'Text message alerts',
+                value: controller.smsAlerts.value,
+                onChanged: (v) => controller.smsAlerts.value = v,
+              ),
+              AppToggleTile(
+                icon: Icons.warning_rounded,
+                title: 'Emergency Alerts',
+                subtitle: 'Critical safety notifications',
+                value: controller.emergencyAlerts.value,
+                onChanged: (v) => controller.emergencyAlerts.value = v,
+              ),
+              AppToggleTile(
+                icon: Icons.volume_up_rounded,
+                title: 'Sound',
+                subtitle: 'Alert sounds',
+                value: controller.soundEnabled.value,
+                onChanged: (v) => controller.soundEnabled.value = v,
+              ),
+              AppToggleTile(
+                icon: Icons.vibration_rounded,
+                title: 'Vibration',
+                subtitle: 'Haptic feedback for alerts',
+                value: controller.vibrationEnabled.value,
+                onChanged: (v) => controller.vibrationEnabled.value = v,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAppSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SettingsSectionTitle(title: 'App settings'),
+        const SizedBox(height: 12),
+        Obx(
+          () => SettingsGroupedCard(
+            children: [
+              AppToggleTile(
+                icon: Icons.dark_mode_rounded,
+                title: 'Dark Mode',
+                subtitle: 'Use dark appearance (UI preview)',
+                value: controller.darkModeEnabled.value,
+                onChanged: (v) => controller.darkModeEnabled.value = v,
+              ),
+              SettingsLanguageRow(controller: controller),
+              SettingsNavTile(
+                icon: Icons.shield_rounded,
+                title: 'Privacy & Security',
+                subtitle: 'Data protection & account security',
+                onTap: () {},
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSupportSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SettingsSectionTitle(title: 'Support'),
+        const SizedBox(height: 12),
+        SettingsGroupedCard(
+          children: [
+            SettingsNavTile(
+              icon: Icons.help_outline_rounded,
+              title: 'Help & FAQ',
+              subtitle: 'Answers to common questions',
+              onTap: () {},
+            ),
+            SettingsNavTile(
+              icon: Icons.support_agent_rounded,
+              title: 'Contact Support',
+              subtitle: 'Reach our care team',
+              onTap: () {},
+            ),
+          ],
+        ),
+      ],
     );
   }
 
   Widget _buildLegalSection() {
-    return _SettingsSectionWidget(
-      title: 'Legal',
-      items: _legalItems,
-      controller: controller,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SettingsSectionTitle(title: 'Legal'),
+        const SizedBox(height: 12),
+        SettingsGroupedCard(
+          children: [
+            SettingsNavTile(
+              icon: Icons.description_rounded,
+              title: 'Terms of Service',
+              subtitle: 'Read our terms',
+              onTap: () {},
+            ),
+            SettingsNavTile(
+              icon: Icons.lock_rounded,
+              title: 'Privacy Policy',
+              subtitle: 'How we protect your data',
+              onTap: () {},
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSignOutButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () async {
+          final confirm = await showAppSignOutDialog(context);
+          if (confirm == true && context.mounted) {
+            Get.offAllNamed(AppRoutes.auth);
+          }
+        },
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppPremiumTokens.red,
+          side: BorderSide(color: AppPremiumTokens.red.withValues(alpha: 0.55)),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        child: const Text(
+          'Sign Out',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
     );
   }
 
   Widget _buildFooter() {
-    return Column(
+    return const Column(
       children: [
         Text(
           'Safety Shield v2.1.0',
-          style: TextStyle(color: _muted, fontSize: 12),
+          style: TextStyle(color: AppPremiumTokens.muted, fontSize: 12),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Text(
           '© 2026 Safety Shield. All rights reserved.',
-          style: TextStyle(color: _muted, fontSize: 12),
+          style: TextStyle(color: AppPremiumTokens.muted, fontSize: 12),
           textAlign: TextAlign.center,
         ),
       ],
     );
-  }
-}
-
-class _UserCardWidget extends StatelessWidget {
-  const _UserCardWidget();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [_card, _cardBorder],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _gold.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 64,
-            height: 64,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [_gold, _goldLight],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'SR',
-                    style: TextStyle(
-                      color: _bgDark,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: -2,
-                  right: -2,
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [_gold, _goldLight],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: _card, width: 2),
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(Icons.workspace_premium_rounded, color: _bgDark, size: 14),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Sarah Rahman',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '+880 1712-345678',
-                  style: TextStyle(color: _muted, fontSize: 13),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(Icons.check_circle_rounded, color: _green, size: 14),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Verified Account',
-                      style: TextStyle(
-                        color: _green,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.chevron_right_rounded, color: _muted, size: 22),
-        ],
-      ),
-    );
-  }
-}
-
-class _SettingsSectionWidget extends StatelessWidget {
-  const _SettingsSectionWidget({
-    required this.title,
-    required this.items,
-    required this.controller,
-  });
-
-  final String title;
-  final List<SettingItem> items;
-  final SettingsController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            title,
-            style: TextStyle(
-              color: _muted,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [_card, _cardBorder],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: _gold.withValues(alpha: 0.1)),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Column(
-              children: [
-                for (int i = 0; i < items.length; i++) ...[
-                  _SettingItemWidget(item: items[i], controller: controller),
-                  if (i < items.length - 1)
-                    Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: _cardBorder,
-                    ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SettingItemWidget extends StatelessWidget {
-  const _SettingItemWidget({
-    required this.item,
-    required this.controller,
-  });
-
-  final SettingItem item;
-  final SettingsController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    if (item.action == 'language') {
-      return _buildLanguageRow();
-    }
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          if (item.route != null && item.route!.isNotEmpty) {
-            Get.toNamed(item.route!);
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: _gold.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                alignment: Alignment.center,
-                child: Icon(item.icon, size: 22, color: _gold),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      item.subtitle,
-                      style: TextStyle(color: _muted, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              if (item.badge != null) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [_gold, _goldLight],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    item.badge!,
-                    style: TextStyle(
-                      color: _bgDark,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-              ],
-              Icon(Icons.chevron_right_rounded, color: _muted, size: 22),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLanguageRow() {
-    return Obx(() {
-      final isEnglish = controller.selectedLanguage.value == 'english';
-      final subtitle = isEnglish ? 'English' : 'বাংলা';
-      return Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: _gold.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(item.icon, size: 22, color: _gold),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: TextStyle(color: _muted, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => controller.setLanguage('english'),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        gradient: isEnglish
-                            ? const LinearGradient(
-                                colors: [_gold, _goldLight],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              )
-                            : null,
-                        color: isEnglish ? null : _cardBorder,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'English',
-                        style: TextStyle(
-                          color: isEnglish ? _bgDark : _muted,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => controller.setLanguage('bangla'),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        gradient: !isEnglish
-                            ? const LinearGradient(
-                                colors: [_gold, _goldLight],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              )
-                            : null,
-                        color: !isEnglish ? null : _cardBorder,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'বাংলা',
-                        style: TextStyle(
-                          color: !isEnglish ? _bgDark : _muted,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    });
   }
 }
